@@ -149,7 +149,7 @@ export const authAPI = {
         // Mock login - replace with real API
         return new Promise((resolve, reject) => {
             setTimeout(() => {
-                if (credentials.email === 'admin@school.com' && credentials.password === 'admin123') {
+                if (credentials.email === 'admin@school.com' && credentials.password === 'admin2026@') {
                     resolve({
                         data: {
                             token: 'mock-jwt-token-' + Date.now(),

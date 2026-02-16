@@ -85,16 +85,16 @@ const Staff = () => {
     ];
 
     return (
-        <div className="p-8 bg-[#F8FAFC] min-h-screen animate-in fade-in duration-500">
+        <div className="p-4 md:p-8 bg-[#F8FAFC] min-h-screen animate-in fade-in duration-500">
             {/* Header */}
-            <div className="flex justify-between items-start mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-center md:items-start mb-8 gap-6 md:gap-0 text-center md:text-left">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 mb-1">Manage staff profiles</h1>
-                    <p className="text-[#0047AB] font-black text-sm uppercase tracking-wider mt-4">Showing {staffList.length} staff members</p>
+                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 mb-1">Manage Staff</h1>
+                    <p className="text-[#0047AB] font-black text-xs md:text-sm uppercase tracking-wider mt-2">Showing {staffList.length} staff members</p>
                 </div>
                 <button
                     onClick={() => navigate('/staff/add')}
-                    className="flex items-center gap-2 bg-[#0047AB] hover:bg-[#003580] text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-100 transition-all active:scale-95"
+                    className="w-full md:w-auto flex items-center justify-center gap-2 bg-[#0047AB] hover:bg-[#003580] text-white px-8 py-3.5 rounded-2xl font-bold shadow-lg shadow-blue-100 transition-all active:scale-95"
                 >
                     <FiPlus size={20} />
                     Add Staff
@@ -102,7 +102,7 @@ const Staff = () => {
             </div>
 
             {/* Filters Card */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-50 p-6 mb-6">
+            <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-4 md:p-8 mb-6">
                 <div className="flex flex-wrap items-center gap-4">
                     {/* Search */}
                     <div className="relative flex-1 min-w-[300px]">

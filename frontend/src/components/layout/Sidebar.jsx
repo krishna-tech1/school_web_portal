@@ -1,22 +1,12 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import {
-    FiGrid,
-    FiCheckSquare,
-    FiCreditCard,
-    FiBox,
-    FiFileText,
-    FiSettings,
-    FiChevronLeft,
-    FiChevronRight,
-    FiUsers
-} from 'react-icons/fi';
+import { FiGrid, FiCheckSquare, FiCreditCard, FiBox, FiFileText, FiSettings, FiChevronLeft, FiChevronRight, FiUsers, FiX } from 'react-icons/fi';
 import { FaGraduationCap, FaChalkboardTeacher } from 'react-icons/fa';
 import { GoTriangleDown } from 'react-icons/go';
 
-const Sidebar = () => {
+const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
     const [collapsed, setCollapsed] = useState(false);
-    const [openMenus, setOpenMenus] = useState(['Students']); // Default open for screenshot focus
+    const [openMenus, setOpenMenus] = useState(['Students']);
 
     const toggleMenu = (label) => {
         if (openMenus.includes(label)) {
@@ -73,65 +63,73 @@ const Sidebar = () => {
 
     return (
         <aside
-            className={`bg-[#0047AB] text-white h-screen sticky top-0 transition-all duration-300 relative ${collapsed ? 'w-20' : 'w-72'
-                }`}
+            className={`bg-[#0047AB] text-white h-screen fixed inset-y-0 left-0 z-50 lg:sticky lg:top-0 transition-all duration-300 shadow-2xl lg:shadow-none 
+                ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} 
+                ${collapsed ? 'lg:w-20' : 'lg:w-72'} w-72`}
         >
+            {/* Mobile Close Button */}
+            <button
+                onClick={() => setIsMobileOpen(false)}
+                className="lg:hidden absolute -right-12 top-6 bg-[#0047AB] text-white p-2 rounded-r-xl shadow-lg"
+            >
+                <FiX size={24} />
+            </button>
+
             {/* Logo area */}
             <div className="h-24 flex flex-col items-center justify-center border-b border-white/10 px-4">
-                {!collapsed && (
-                    <div className="flex flex-col items-center text-center">
-                        <p className="text-[#FFD700] font-black text-sm tracking-[0.2em] leading-tight">GOD IS LOVE</p>
-                        <p className="text-[#FFD700] font-black text-sm tracking-[0.2em] leading-tight mt-1">LOVE IS GOD</p>
-                    </div>
-                )}
+                <div className={`flex flex-col items-center text-center transition-all ${collapsed ? 'scale-0 lg:hidden' : 'scale-100'}`}>
+                    <p className="text-[#FFD700] font-black text-sm tracking-[0.2em] leading-tight">GOD IS LOVE</p>
+                    <p className="text-[#FFD700] font-black text-sm tracking-[0.2em] leading-tight mt-1">LOVE IS GOD</p>
+                </div>
             </div>
 
             {/* Navigation */}
-            <nav className="p-4 space-y-1 overflow-y-auto max-h-[calc(100vh-96px)]">
+            <nav className="p-4 space-y-1 overflow-y-auto max-h-[calc(100vh-96px)] custom-scrollbar">
                 {menuItems.map((item) => (
                     <div key={item.label}>
                         {item.path ? (
                             <NavLink
                                 to={item.path}
+                                onClick={() => setIsMobileOpen(false)}
                                 className={({ isActive }) =>
                                     `flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 group ${isActive
-                                        ? 'text-white font-bold'
-                                        : 'text-white/60 hover:text-white'
+                                        ? 'bg-white/10 text-white font-bold'
+                                        : 'text-white/60 hover:text-white hover:bg-white/5'
                                     }`
                                 }
                             >
                                 <div className="flex items-center gap-4">
                                     <item.icon className="h-5 w-5 flex-shrink-0" />
-                                    {!collapsed && <span className="text-[15px]">{item.label}</span>}
+                                    <span className={`text-[15px] transition-all whitespace-nowrap ${collapsed ? 'lg:opacity-0 lg:w-0 overflow-hidden' : 'opacity-100'}`}>
+                                        {item.label}
+                                    </span>
                                 </div>
-                                {!collapsed && item.hasSub && (
-                                    <GoTriangleDown className="h-3 w-3 -rotate-90 opacity-40 group-hover:opacity-100 transition-opacity" />
-                                )}
                             </NavLink>
                         ) : (
                             <div className="space-y-1">
                                 <button
                                     onClick={() => toggleMenu(item.label)}
-                                    className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 group ${openMenus.includes(item.label) ? 'text-white font-bold' : 'text-white/60 hover:text-white'
+                                    className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 group ${openMenus.includes(item.label) ? 'bg-white/10 text-white font-bold' : 'text-white/60 hover:text-white hover:bg-white/5'
                                         }`}
                                 >
                                     <div className="flex items-center gap-4">
                                         <item.icon className="h-5 w-5 flex-shrink-0" />
-                                        {!collapsed && <span className="text-[15px]">{item.label}</span>}
+                                        <span className={`text-[15px] transition-all whitespace-nowrap ${collapsed ? 'lg:opacity-0 lg:w-0 overflow-hidden' : 'opacity-100'}`}>
+                                            {item.label}
+                                        </span>
                                     </div>
-                                    {!collapsed && (
-                                        <GoTriangleDown className={`h-3 w-3 transition-transform duration-300 ${openMenus.includes(item.label) ? 'rotate-0' : '-rotate-90'}`} />
-                                    )}
+                                    <GoTriangleDown className={`h-3 w-3 transition-transform duration-300 ${openMenus.includes(item.label) ? 'rotate-0' : '-rotate-90'} ${collapsed ? 'lg:hidden' : ''}`} />
                                 </button>
 
-                                {!collapsed && openMenus.includes(item.label) && (
-                                    <div className="pl-[52px] space-y-3 py-2 animate-in slide-in-from-top-1 duration-200">
+                                {openMenus.includes(item.label) && (
+                                    <div className={`space-y-2 py-2 animate-in slide-in-from-top-1 duration-200 ${collapsed ? 'lg:hidden' : 'pl-[52px]'}`}>
                                         {item.subItems?.map(sub => (
                                             <NavLink
                                                 key={sub.path}
                                                 to={sub.path}
+                                                onClick={() => setIsMobileOpen(false)}
                                                 className={({ isActive }) =>
-                                                    `block text-[14px] font-medium transition-colors ${isActive ? 'text-white' : 'text-white/60 hover:text-white'
+                                                    `block text-[14px] font-medium transition-colors py-1 ${isActive ? 'text-white' : 'text-white/60 hover:text-white'
                                                     }`
                                                 }
                                             >
@@ -146,10 +144,10 @@ const Sidebar = () => {
                 ))}
             </nav>
 
-            {/* Collapse Toggle */}
+            {/* Collapse Toggle - Hidden on Mobile */}
             <button
                 onClick={() => setCollapsed(!collapsed)}
-                className="absolute right-2 top-12 w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#0047AB] shadow-lg z-50 hover:bg-slate-50 transition-all active:scale-90 border-none outline-none focus:outline-none"
+                className="hidden lg:flex absolute right-2 top-12 w-8 h-8 bg-white rounded-full items-center justify-center text-[#0047AB] shadow-lg z-50 hover:bg-slate-50 transition-all active:scale-90 border-none outline-none focus:outline-none"
             >
                 {collapsed ? <FiChevronRight size={18} /> : <FiChevronLeft size={18} />}
             </button>

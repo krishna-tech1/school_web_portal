@@ -35,12 +35,25 @@ const Login = () => {
     };
 
     return (
-        <div className="flex h-screen w-screen overflow-hidden font-sans bg-white">
+        <div className="flex min-h-screen w-screen font-sans bg-white overflow-x-hidden">
             {/* Left Side - Login Form */}
-            <div className="w-full lg:w-[45%] flex flex-col items-center justify-center px-8 sm:px-16 lg:px-24">
+            <div className="w-full lg:w-[45%] flex flex-col items-center justify-center px-6 py-12 sm:px-16 lg:px-24">
                 <div className="w-full max-w-sm">
+                    {/* Mobile Logo Only */}
+                    <div className="lg:hidden flex justify-center mb-8">
+                        <div className="scale-90">
+                            <svg width="100" height="60" viewBox="0 0 100 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect width="100" height="60" rx="10" fill="#0047AB" />
+                                <path d="M10 30 Q50 10 90 30 Q50 50 10 30" stroke="white" strokeWidth="2" fill="none" />
+                                <text x="50%" y="45%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">GOD IS LOVE</text>
+                                <text x="50%" y="65%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">GOD IS LOVE</text>
+                            </svg>
+                        </div>
+                    </div>
+
                     {/* Title */}
-                    <h1 className="text-3xl font-semibold text-[#0047AB] text-center mb-10">Login</h1>
+                    <h1 className="text-3xl md:text-4xl font-black text-[#0047AB] text-center mb-4 lg:mb-10">Login</h1>
+                    <p className="lg:hidden text-center text-slate-500 font-bold text-sm mb-10">Xan Matriculation School</p>
 
                     {/* Role Switcher */}
                     <div className="flex bg-white border border-[#0047AB] rounded-lg mb-10 overflow-hidden">

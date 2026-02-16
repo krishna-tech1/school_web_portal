@@ -56,21 +56,21 @@ const FeeStructure = () => {
     ];
 
     return (
-        <div className="p-8 bg-[#F8FAFC] min-h-screen animate-in fade-in duration-500">
+        <div className="p-4 md:p-8 bg-[#F8FAFC] min-h-screen animate-in fade-in duration-500">
             {/* Header */}
-            <div className="flex justify-between items-start mb-10">
+            <div className="flex flex-col md:flex-row justify-between items-center md:items-start mb-8 gap-6 md:gap-0 text-center md:text-left">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 mb-1">Fee Structure</h1>
-                    <p className="text-slate-500 font-medium">Manage and define fee breakdowns for all classes</p>
+                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 mb-1">Fee Structure</h1>
+                    <p className="text-slate-500 font-bold text-xs md:text-sm">Manage and define fee breakdowns for all classes</p>
                 </div>
-                <button className="flex items-center gap-2 bg-[#0047AB] hover:bg-[#003580] text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-100 transition-all active:scale-95">
+                <button className="w-full md:w-auto flex items-center justify-center gap-2 bg-[#0047AB] hover:bg-[#003580] text-white px-8 py-3.5 rounded-2xl font-bold shadow-lg shadow-blue-100 transition-all active:scale-95">
                     <FiPlus size={20} />
                     Add New Structure
                 </button>
             </div>
 
             {/* Filters */}
-            <Card className="border-none shadow-sm rounded-[2rem] p-8 bg-white mb-8">
+            <Card className="border-none shadow-sm rounded-[2rem] p-4 md:p-8 bg-white mb-8">
                 <div className="flex flex-wrap gap-6 items-center">
                     <div className="relative flex-1 min-w-[300px]">
                         <FiSearch className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
