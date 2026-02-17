@@ -85,100 +85,110 @@ const Staff = () => {
     ];
 
     return (
-        <div className="p-4 md:p-8 bg-[#F8FAFC] min-h-screen animate-in fade-in duration-500">
+        <div className="p-4 md:p-10 bg-[#FBFBFE] min-h-screen animate-in fade-in duration-1000">
+            {/* Breadcrumbs */}
+            <div className="flex items-center gap-2 mb-4 px-2">
+                <span className="text-[11px] font-black tracking-widest text-[#0047AB] uppercase">Manage Staff</span>
+            </div>
+
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-center md:items-start mb-8 gap-6 md:gap-0 text-center md:text-left">
+            <div className="flex flex-col md:flex-row justify-between items-center md:items-start mb-10 gap-6 md:gap-0 px-2">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 mb-1">Manage Staff</h1>
-                    <p className="text-[#0047AB] font-black text-xs md:text-sm uppercase tracking-wider mt-2">Showing {staffList.length} staff members</p>
+                    <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight">Staff Management</h1>
+                    <div className="flex items-center gap-3 mt-3">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#10B981]"></span>
+                        <p className="text-[#0047AB] font-black text-[13px] uppercase tracking-widest">Active Database: {staffList.length} Total Staff</p>
+                    </div>
                 </div>
                 <button
                     onClick={() => navigate('/staff/add')}
-                    className="w-full md:w-auto flex items-center justify-center gap-2 bg-[#0047AB] hover:bg-[#003580] text-white px-8 py-3.5 rounded-2xl font-bold shadow-lg shadow-blue-100 transition-all active:scale-95"
+                    className="w-full md:w-auto flex items-center justify-center gap-3 bg-[#0047AB] hover:bg-[#003580] text-white px-10 py-4 rounded-[1.5rem] font-black shadow-xl shadow-blue-200/50 transition-all hover:-translate-y-1 active:scale-95 text-sm uppercase tracking-widest"
                 >
                     <FiPlus size={20} />
-                    Add Staff
+                    New Staff Member
                 </button>
             </div>
 
-            {/* Filters Card */}
-            <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-4 md:p-8 mb-6">
-                <div className="flex flex-wrap items-center gap-4">
+            {/* Main Content Card */}
+            <div className="bg-white rounded-[3rem] shadow-[0_15px_50px_rgba(0,0,0,0.03)] border border-slate-100 p-6 md:p-10 mb-6 group transition-all duration-500 hover:shadow-[0_30px_70px_rgba(0,0,0,0.05)] ring-1 ring-slate-100">
+                <div className="flex flex-wrap items-center gap-6">
                     {/* Search */}
-                    <div className="relative flex-1 min-w-[300px]">
-                        <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <div className="relative flex-1 min-w-[300px] group/search">
+                        <FiSearch className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/search:text-[#0047AB] transition-colors" size={20} />
                         <input
                             type="text"
-                            placeholder="Search by name or ID"
+                            placeholder="Find by name, ID or department..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#0047AB] transition-all"
+                            className="w-full pl-16 pr-6 py-4.5 bg-slate-50 border-2 border-slate-50 rounded-[1.25rem] text-[15px] font-bold focus:bg-white focus:border-[#0047AB]/20 focus:ring-4 focus:ring-[#0047AB]/5 transition-all outline-none placeholder:text-slate-400"
                         />
                     </div>
 
-                    {/* Staff Type Dropdown */}
-                    <div className="relative" onClick={(e) => e.stopPropagation()}>
-                        <button
-                            onClick={() => {
-                                setIsTypeOpen(!isTypeOpen);
-                                setIsDeptOpen(false);
-                            }}
-                            className="flex items-center justify-between gap-8 bg-[#f3f4f6] text-slate-900 px-6 py-3 rounded-xl font-bold text-sm min-w-[170px] hover:bg-slate-200 transition-all"
-                        >
-                            {selectedType}
-                            <FiChevronDown className={`transition-transform duration-300 ${isTypeOpen ? 'rotate-180' : ''}`} size={18} />
-                        </button>
-                        {isTypeOpen && (
-                            <div className="absolute top-full left-0 mt-2 w-full bg-white rounded-xl shadow-xl border border-slate-100 py-2 z-[100] animate-in fade-in slide-in-from-top-2 duration-300">
-                                {staffTypes.map(t => (
-                                    <button
-                                        key={t}
-                                        onClick={() => {
-                                            setSelectedType(t);
-                                            setIsTypeOpen(false);
-                                        }}
-                                        className={`w-full text-left px-4 py-2 text-sm font-bold transition-colors hover:bg-slate-50 ${selectedType === t ? 'text-[#0047AB] bg-blue-50' : 'text-slate-600'}`}
-                                    >
-                                        {t}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                    <div className="flex gap-4 w-full md:w-auto">
+                        {/* Staff Type Dropdown */}
+                        <div className="relative flex-1 md:flex-none group/drop" onClick={(e) => e.stopPropagation()}>
+                            <button
+                                onClick={() => {
+                                    setIsTypeOpen(!isTypeOpen);
+                                    setIsDeptOpen(false);
+                                }}
+                                className="w-full flex items-center justify-between gap-8 bg-slate-50 border-2 border-slate-50 text-slate-900 px-8 py-4.5 rounded-[1.25rem] font-black text-xs uppercase tracking-widest min-w-[180px] hover:bg-white hover:border-[#0047AB]/20 transition-all"
+                            >
+                                {selectedType}
+                                <FiChevronDown className={`transition-transform duration-500 ${isTypeOpen ? 'rotate-180' : ''}`} size={18} />
+                            </button>
+                            {isTypeOpen && (
+                                <div className="absolute top-[calc(100%+12px)] left-0 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 py-3 z-[100] animate-in fade-in slide-in-from-top-4 duration-300 ring-1 ring-black/5">
+                                    {staffTypes.map(t => (
+                                        <button
+                                            key={t}
+                                            onClick={() => {
+                                                setSelectedType(t);
+                                                setIsTypeOpen(false);
+                                            }}
+                                            className={`w-full text-left px-6 py-3 text-[13px] font-black uppercase tracking-widest transition-colors hover:bg-slate-50 ${selectedType === t ? 'text-[#0047AB] bg-blue-50' : 'text-slate-600'}`}
+                                        >
+                                            {t}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
 
-                    {/* Department Dropdown */}
-                    <div className="relative" onClick={(e) => e.stopPropagation()}>
-                        <button
-                            onClick={() => {
-                                setIsDeptOpen(!isDeptOpen);
-                                setIsTypeOpen(false);
-                            }}
-                            className="flex items-center justify-between gap-8 bg-[#f3f4f6] text-slate-900 px-6 py-3 rounded-xl font-bold text-sm min-w-[170px] hover:bg-slate-200 transition-all"
-                        >
-                            {selectedDept}
-                            <FiChevronDown className={`transition-transform duration-300 ${isDeptOpen ? 'rotate-180' : ''}`} size={18} />
-                        </button>
-                        {isDeptOpen && (
-                            <div className="absolute top-full left-0 mt-2 w-full bg-white rounded-xl shadow-xl border border-slate-100 py-2 z-[100] max-h-[300px] overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-300">
-                                {departments.map(d => (
-                                    <button
-                                        key={d}
-                                        onClick={() => {
-                                            setSelectedDept(d);
-                                            setIsDeptOpen(false);
-                                        }}
-                                        className={`w-full text-left px-4 py-2 text-sm font-bold transition-colors hover:bg-slate-50 ${selectedDept === d ? 'text-[#0047AB] bg-blue-50' : 'text-slate-600'}`}
-                                    >
-                                        {d}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                        {/* Department Dropdown */}
+                        <div className="relative flex-1 md:flex-none group/drop" onClick={(e) => e.stopPropagation()}>
+                            <button
+                                onClick={() => {
+                                    setIsDeptOpen(!isDeptOpen);
+                                    setIsTypeOpen(false);
+                                }}
+                                className="w-full flex items-center justify-between gap-8 bg-slate-50 border-2 border-slate-50 text-slate-900 px-8 py-4.5 rounded-[1.25rem] font-black text-xs uppercase tracking-widest min-w-[220px] hover:bg-white hover:border-[#0047AB]/20 transition-all"
+                            >
+                                {selectedDept}
+                                <FiChevronDown className={`transition-transform duration-500 ${isDeptOpen ? 'rotate-180' : ''}`} size={18} />
+                            </button>
+                            {isDeptOpen && (
+                                <div className="absolute top-[calc(100%+12px)] left-0 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 py-3 z-[100] max-h-[300px] overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-300 ring-1 ring-black/5 custom-scrollbar">
+                                    {departments.map(d => (
+                                        <button
+                                            key={d}
+                                            onClick={() => {
+                                                setSelectedDept(d);
+                                                setIsDeptOpen(false);
+                                            }}
+                                            className={`w-full text-left px-6 py-3 text-[13px] font-black uppercase tracking-widest transition-colors hover:bg-slate-50 ${selectedDept === d ? 'text-[#0047AB] bg-blue-50' : 'text-slate-600'}`}
+                                        >
+                                            {d}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
-                {/* Table */}
-                <div className="mt-8 border-t border-slate-50 pt-2">
+                {/* Refined Table Section */}
+                <div className="mt-12 border-t border-slate-50 pt-8 overflow-hidden rounded-2xl">
                     <Table
                         columns={columns}
                         data={staffList}

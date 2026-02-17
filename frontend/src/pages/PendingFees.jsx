@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiSearch, FiChevronDown, FiMail, FiBell } from 'react-icons/fi';
+import { FiSearch, FiChevronDown, FiBell } from 'react-icons/fi';
 import { Card, Table } from '../components/ui';
 
 const PendingFees = () => {
@@ -62,40 +62,50 @@ const PendingFees = () => {
     ];
 
     return (
-        <div className="p-4 md:p-8 bg-[#F8FAFC] min-h-screen animate-in fade-in duration-500">
+        <div className="p-4 md:p-10 bg-[#FBFBFE] min-h-screen animate-in fade-in duration-1000">
+            {/* Breadcrumbs */}
+            <div className="flex items-center gap-2 mb-4 px-2">
+                <span className="text-[11px] font-black tracking-widest text-[#0047AB] uppercase leading-none">Pending Fees</span>
+            </div>
+
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-center md:items-start mb-8 gap-6 md:gap-0 text-center md:text-left">
+            <div className="flex flex-col md:flex-row justify-between items-center md:items-start mb-10 gap-6 md:gap-0 px-2 transition-all">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 mb-1">Pending Fees</h1>
-                    <p className="text-slate-500 font-bold text-xs md:text-sm uppercase tracking-wide">Students with pending payments</p>
+                    <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight">Fee Collections</h1>
+                    <div className="flex items-center gap-3 mt-3">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#EF4444] animate-pulse"></span>
+                        <p className="text-slate-500 font-black text-[13px] uppercase tracking-widest">Action Required: {pendingData.length} Outstanding Payments</p>
+                    </div>
                 </div>
-                <div className="flex flex-wrap justify-center md:justify-end gap-3 w-full md:w-auto">
-                    <div className="relative flex-1 md:flex-none" onClick={(e) => e.stopPropagation()}>
+
+                <div className="flex flex-wrap justify-center md:justify-end gap-4 w-full md:w-auto">
+                    <div className="relative group/drop" onClick={(e) => e.stopPropagation()}>
                         <button
                             onClick={() => setIsClassOpen(!isClassOpen)}
-                            className="w-full bg-[#0047AB] text-white px-5 py-2.5 rounded-xl font-bold flex items-center justify-between gap-4 hover:bg-[#003580] transition-all text-sm md:text-base"
+                            className="bg-white border-2 border-slate-100 text-slate-900 px-8 py-4 rounded-[1.25rem] font-black text-xs uppercase tracking-widest flex items-center justify-between gap-6 hover:border-[#0047AB]/20 transition-all shadow-sm min-w-[160px]"
                         >
-                            {selectedClass} <FiChevronDown />
+                            {selectedClass} <FiChevronDown className={`transition-transform duration-500 ${isClassOpen ? 'rotate-180' : ''}`} />
                         </button>
                         {isClassOpen && (
-                            <div className="absolute top-full right-0 mt-2 w-full md:w-48 bg-white rounded-xl shadow-xl z-50 py-2 border border-slate-100">
+                            <div className="absolute top-[calc(100%+12px)] right-0 w-full md:w-56 bg-white rounded-2xl shadow-2xl z-50 py-3 border border-slate-100 animate-in fade-in slide-in-from-top-4 duration-300 ring-1 ring-black/5">
                                 {classes.map(c => (
-                                    <button key={c} onClick={() => { setSelectedClass(c); setIsClassOpen(false) }} className="w-full text-left px-4 py-2.5 text-sm font-bold hover:bg-slate-50">{c}</button>
+                                    <button key={c} onClick={() => { setSelectedClass(c); setIsClassOpen(false) }} className={`w-full text-left px-6 py-3 text-[13px] font-black uppercase tracking-widest transition-colors hover:bg-slate-50 ${selectedClass === c ? 'text-[#0047AB] bg-blue-50' : 'text-slate-600'}`}>{c}</button>
                                 ))}
                             </div>
                         )}
                     </div>
-                    <div className="relative flex-1 md:flex-none" onClick={(e) => e.stopPropagation()}>
+
+                    <div className="relative group/drop" onClick={(e) => e.stopPropagation()}>
                         <button
                             onClick={() => setIsSectionOpen(!isSectionOpen)}
-                            className="w-full bg-[#0047AB] text-white px-5 py-2.5 rounded-xl font-bold flex items-center justify-between gap-4 hover:bg-[#003580] transition-all text-sm md:text-base"
+                            className="bg-white border-2 border-slate-100 text-slate-900 px-8 py-4 rounded-[1.25rem] font-black text-xs uppercase tracking-widest flex items-center justify-between gap-6 hover:border-[#0047AB]/20 transition-all shadow-sm min-w-[160px]"
                         >
-                            {selectedSection} <FiChevronDown />
+                            {selectedSection} <FiChevronDown className={`transition-transform duration-500 ${isSectionOpen ? 'rotate-180' : ''}`} />
                         </button>
                         {isSectionOpen && (
-                            <div className="absolute top-full right-0 mt-2 w-full md:w-48 bg-white rounded-xl shadow-xl z-50 py-2 border border-slate-100">
+                            <div className="absolute top-[calc(100%+12px)] right-0 w-full md:w-56 bg-white rounded-2xl shadow-2xl z-50 py-3 border border-slate-100 animate-in fade-in slide-in-from-top-4 duration-300 ring-1 ring-black/5">
                                 {sections.map(s => (
-                                    <button key={s} onClick={() => { setSelectedSection(s); setIsSectionOpen(false) }} className="w-full text-left px-4 py-2.5 text-sm font-bold hover:bg-slate-50">{s}</button>
+                                    <button key={s} onClick={() => { setSelectedSection(s); setIsSectionOpen(false) }} className={`w-full text-left px-6 py-3 text-[13px] font-black uppercase tracking-widest transition-colors hover:bg-slate-50 ${selectedSection === s ? 'text-[#0047AB] bg-blue-50' : 'text-slate-600'}`}>{s}</button>
                                 ))}
                             </div>
                         )}
@@ -103,43 +113,43 @@ const PendingFees = () => {
                 </div>
             </div>
 
-            {/* Main Content */}
-            <Card className="border-none shadow-sm rounded-[2rem] p-4 md:p-10 bg-white">
-                <div className="flex flex-col xl:flex-row justify-between items-stretch xl:items-center mb-8 md:mb-10 gap-6">
-                    <div className="relative flex-1">
-                        <FiSearch className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
+            {/* Main Content Card */}
+            <Card className="border-none shadow-[0_15px_50px_rgba(0,0,0,0.03)] rounded-[3rem] p-6 md:p-10 bg-white ring-1 ring-slate-100">
+                <div className="flex flex-col xl:flex-row justify-between items-stretch xl:items-center mb-10 gap-8">
+                    <div className="relative flex-1 group/search">
+                        <FiSearch className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/search:text-[#0047AB] transition-colors" size={20} />
                         <input
                             type="text"
-                            placeholder="Search student..."
-                            className="w-full pl-12 pr-6 py-3.5 bg-slate-50 border-none rounded-xl font-bold focus:ring-2 focus:ring-[#0047AB] transition-all text-sm"
+                            placeholder="Search by student name or ID..."
+                            className="w-full pl-16 pr-6 py-4.5 bg-slate-50 border-2 border-slate-50 rounded-[1.5rem] text-[15px] font-bold focus:bg-white focus:border-[#0047AB]/20 focus:ring-4 focus:ring-[#0047AB]/5 transition-all outline-none placeholder:text-slate-400"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
 
                     <div className="flex flex-col md:flex-row gap-4">
-                        <div className="relative flex-1" onClick={(e) => e.stopPropagation()}>
+                        <div className="relative flex-1 group/drop" onClick={(e) => e.stopPropagation()}>
                             <button
                                 onClick={() => setIsStatusOpen(!isStatusOpen)}
-                                className="w-full bg-[#0047AB] text-white px-6 py-3.5 rounded-xl font-bold flex items-center justify-between min-w-[140px] hover:bg-[#003580] transition-all text-sm"
+                                className="w-full bg-[#0047AB] hover:bg-[#003580] text-white px-8 py-4.5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest flex items-center justify-between min-w-[180px] shadow-lg shadow-blue-200/50 transition-all hover:-translate-y-1 active:scale-95"
                             >
-                                {selectedStatus} <FiChevronDown className="ml-4" />
+                                {selectedStatus} <FiChevronDown className={`ml-4 transition-transform duration-500 ${isStatusOpen ? 'rotate-180' : ''}`} size={18} />
                             </button>
                             {isStatusOpen && (
-                                <div className="absolute top-full right-0 mt-2 w-full bg-white rounded-xl shadow-xl z-50 py-2 border border-slate-100">
+                                <div className="absolute top-[calc(100%+12px)] right-0 w-full bg-white rounded-2xl shadow-2xl z-50 py-3 border border-slate-100 animate-in fade-in slide-in-from-top-4 duration-300 ring-1 ring-black/5">
                                     {statuses.map(s => (
-                                        <button key={s} onClick={() => { setSelectedStatus(s); setIsStatusOpen(false) }} className="w-full text-left px-4 py-2.5 text-sm font-bold hover:bg-slate-50">{s}</button>
+                                        <button key={s} onClick={() => { setSelectedStatus(s); setIsStatusOpen(false) }} className={`w-full text-left px-6 py-3 text-[13px] font-black uppercase tracking-widest transition-colors hover:bg-slate-50 ${selectedStatus === s ? 'text-[#0047AB] bg-blue-50' : 'text-slate-600'}`}>{s}</button>
                                     ))}
                                 </div>
                             )}
                         </div>
-                        <button className="flex-1 bg-[#0047AB] text-white px-6 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#003580] transition-all text-sm whitespace-nowrap">
-                            <FiBell /> Send Reminder All
+                        <button className="flex-1 bg-slate-900 hover:bg-black text-white px-8 py-4.5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all hover:-translate-y-1 active:scale-95 shadow-xl shadow-slate-200/50 whitespace-nowrap leading-none">
+                            <FiBell size={18} /> Send Reminder All
                         </button>
                     </div>
                 </div>
 
-                <div className="overflow-hidden">
+                <div className="overflow-hidden mt-2 border-t border-slate-50 pt-8 rounded-2xl">
                     <Table
                         columns={columns}
                         data={pendingData}

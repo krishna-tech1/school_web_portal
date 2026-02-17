@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { FiBell, FiSearch, FiUser, FiLogOut, FiSettings, FiMenu } from 'react-icons/fi';
+import { FiBell, FiSearch, FiUser, FiLogOut, FiSettings, FiMenu, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FaGraduationCap } from 'react-icons/fa';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-const Navbar = ({ onMenuClick }) => {
+const Navbar = ({ onMenuClick, isMobileOpen, isCollapsed, setIsCollapsed }) => {
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
@@ -15,7 +16,7 @@ const Navbar = ({ onMenuClick }) => {
         if (path.startsWith('/attendance')) return 'Attendance';
         if (path.startsWith('/fees')) return 'Fees';
         if (path.startsWith('/inventory')) return 'Inventory';
-        return 'School ERP';
+        return 'School Portal';
     };
 
     const handleLogout = () => {
@@ -24,24 +25,43 @@ const Navbar = ({ onMenuClick }) => {
     };
 
     return (
-        <header className="bg-[#0047AB] text-white h-16 md:h-20 sticky top-0 z-30 transition-all duration-300 shadow-lg px-4 md:px-8">
+        <header className="bg-[#0047AB] text-white h-16 md:h-20 sticky top-0 z-30 transition-all duration-300 shadow-lg px-4 md:px-8 border-b border-white/10">
             <div className="h-full flex items-center justify-between">
-                {/* Left Section: Menu & Title */}
-                <div className="flex items-center gap-4">
+                {/* Left Section: Toggle, Logo & Name */}
+                <div className="flex items-center gap-6">
+                    {/* PC Toggle Button */}
                     <button
-                        onClick={onMenuClick}
-                        className="lg:hidden p-2 hover:bg-white/10 rounded-xl transition-all active:scale-90"
+                        onClick={() => setIsCollapsed(!isCollapsed)}
+                        className="hidden lg:flex items-center justify-center w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl transition-all active:scale-90 border border-white/10 shadow-sm"
                     >
-                        <FiMenu size={24} />
+                        {isCollapsed ? <FiChevronRight size={22} /> : <FiChevronLeft size={22} />}
                     </button>
-                    <div>
-                        <h1 className="text-lg md:text-xl font-bold tracking-tight">{getPageTitle()}</h1>
+
+                    {/* Mobile Menu Button */}
+                    {!isMobileOpen && (
+                        <button
+                            onClick={onMenuClick}
+                            className="lg:hidden p-2 hover:bg-white/10 rounded-xl transition-all active:scale-90"
+                        >
+                            <FiMenu size={24} />
+                        </button>
+                    )}
+
+                    {/* Branding */}
+                    <div className="flex items-center gap-4">
+                        <div className="hidden sm:flex w-10 h-10 bg-[#FFD700] rounded-xl items-center justify-center shadow-[0_0_20px_rgba(255,215,0,0.3)] ring-2 ring-white/20">
+                            <FaGraduationCap className="text-[#0047AB] text-xl" />
+                        </div>
+                        <div className="flex flex-col">
+                            <h1 className="text-[13px] md:text-sm font-black tracking-[0.15em] leading-none uppercase text-white/90">XAN MATRICULATION SCHOOL</h1>
+                            <p className="text-[10px] font-bold text-[#FFD700] tracking-widest mt-1 uppercase leading-none">{getPageTitle()}</p>
+                        </div>
                     </div>
                 </div>
 
                 {/* Right Section */}
                 <div className="flex items-center gap-3 md:gap-6">
-                    {/* Notifications - Hidden on very small screens to save space */}
+                    {/* Notifications */}
                     <button className="hidden sm:block relative p-2.5 hover:bg-white/10 rounded-full transition-all group">
                         <FiBell className="h-5 w-5" />
                         <span className="absolute top-2.5 right-2.5 h-2 w-2 bg-red-500 border-2 border-[#0047AB] rounded-full"></span>

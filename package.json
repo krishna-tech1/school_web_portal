@@ -1,0 +1,20 @@
+{
+    "name": "school-web-portal",
+    "version": "1.0.0",
+    "description": "School Web Portal - Full Stack Application",
+    "scripts": {
+        "dev": "cd frontend && npm run dev",
+        "build": "cd frontend && npm run build",
+        "preview": "cd frontend && npm run preview",
+        "install-frontend": "cd frontend && npm install",
+        "install-backend": "cd server && pip install -r requirements.txt",
+        "install-all": "npm run install-frontend && npm run install-backend"
+    },
+    "keywords": [
+        "school",
+        "portal",
+        "education"
+    ],
+    "author": "",
+    "license": "ISC"
+}

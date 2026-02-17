@@ -1,98 +1,150 @@
 import React, { useState, useEffect } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiChevronDown, FiBookOpen } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiChevronDown } from 'react-icons/fi';
 import { Card, Table } from '../components/ui';
 
 const FeeStructure = () => {
     const [selectedClass, setSelectedClass] = useState('All Classes');
     const [isClassOpen, setIsClassOpen] = useState(false);
-    const [search, setSearch] = useState('');
 
-    const classes = ['All Classes', 'LKG', 'UKG', ...Array.from({ length: 12 }, (_, i) => `${i + 1}${getSuffix(i + 1)} Std`)];
-
-    function getSuffix(num) {
-        if (num === 1) return 'st';
-        if (num === 2) return 'nd';
-        if (num === 3) return 'rd';
-        return 'th';
-    }
+    const classes = ['All Classes', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'];
 
     // Close on click outside
     useEffect(() => {
-        const handleClickOutside = () => setIsClassOpen(false);
+        const handleClickOutside = () => {
+            setIsClassOpen(false);
+        };
         window.addEventListener('click', handleClickOutside);
         return () => window.removeEventListener('click', handleClickOutside);
     }, []);
 
-    const feeStructures = [
-        { class: '10th Std', tuition: '30,000', lab: '5,000', sports: '2,000', library: '1,000', total: '38,000' },
-        { class: '9th Std', tuition: '28,000', lab: '4,000', sports: '2,000', library: '1,000', total: '35,000' },
-        { class: '8th Std', tuition: '25,000', lab: '3,000', sports: '2,000', library: '1,000', total: '31,000' },
-        { class: 'LKG', tuition: '15,000', lab: '0', sports: '1,000', library: '500', total: '16,500' },
-        { class: 'UKG', tuition: '18,000', lab: '0', sports: '1,000', library: '500', total: '19,500' },
+    const baseFeeStructure = [
+        { class: 'Class 1', tuitionFee: 15000, admissionFee: 5000, examFee: 2000, labFee: 0, libraryFee: 1000, sportsFee: 1500, total: 24500 },
+        { class: 'Class 2', tuitionFee: 15000, admissionFee: 5000, examFee: 2000, labFee: 0, libraryFee: 1000, sportsFee: 1500, total: 24500 },
+        { class: 'Class 3', tuitionFee: 16000, admissionFee: 5000, examFee: 2500, labFee: 0, libraryFee: 1000, sportsFee: 1500, total: 26000 },
+        { class: 'Class 4', tuitionFee: 16000, admissionFee: 5000, examFee: 2500, labFee: 0, libraryFee: 1000, sportsFee: 1500, total: 26000 },
+        { class: 'Class 5', tuitionFee: 17000, admissionFee: 5000, examFee: 2500, labFee: 1000, libraryFee: 1000, sportsFee: 1500, total: 28000 },
+        { class: 'Class 6', tuitionFee: 18000, admissionFee: 5000, examFee: 3000, labFee: 1500, libraryFee: 1000, sportsFee: 1500, total: 30000 },
+        { class: 'Class 7', tuitionFee: 18000, admissionFee: 5000, examFee: 3000, labFee: 1500, libraryFee: 1000, sportsFee: 1500, total: 30000 },
+        { class: 'Class 8', tuitionFee: 19000, admissionFee: 5000, examFee: 3000, labFee: 2000, libraryFee: 1000, sportsFee: 1500, total: 31500 },
+        { class: 'Class 9', tuitionFee: 20000, admissionFee: 5000, examFee: 3500, labFee: 2500, libraryFee: 1000, sportsFee: 1500, total: 33500 },
+        { class: 'Class 10', tuitionFee: 20000, admissionFee: 5000, examFee: 3500, labFee: 2500, libraryFee: 1000, sportsFee: 1500, total: 33500 },
+        { class: 'Class 11', tuitionFee: 22000, admissionFee: 5000, examFee: 4000, labFee: 3000, libraryFee: 1500, sportsFee: 1500, total: 37000 },
+        { class: 'Class 12', tuitionFee: 22000, admissionFee: 5000, examFee: 4000, labFee: 3000, libraryFee: 1500, sportsFee: 1500, total: 37000 },
     ];
 
-    const filteredData = feeStructures.filter(item => {
-        const matchesClass = selectedClass === 'All Classes' || item.class === selectedClass;
-        const matchesSearch = item.class.toLowerCase().includes(search.toLowerCase());
-        return matchesClass && matchesSearch;
+    // Filter Logic
+    const feeStructure = baseFeeStructure.filter(fee => {
+        return selectedClass === 'All Classes' || fee.class === selectedClass;
     });
 
     const columns = [
-        { header: 'Class', accessor: 'class', render: (row) => <span className="font-bold text-slate-700">{row.class}</span> },
-        { header: 'Tuition Fee (₹)', accessor: 'tuition' },
-        { header: 'Lab Fee (₹)', accessor: 'lab' },
-        { header: 'Sports Fee (₹)', accessor: 'sports' },
-        { header: 'Library Fee (₹)', accessor: 'library' },
-        { header: 'Total (₹)', accessor: 'total', render: (row) => <span className="font-bold text-[#0047AB]">₹ {row.total}</span> },
+        {
+            header: 'Class',
+            accessor: 'class',
+            render: (row) => <span className="font-black text-slate-900">{row.class}</span>,
+        },
+        {
+            header: 'Tuition Fee',
+            render: (row) => <span className="font-bold text-slate-700">₹{row.tuitionFee.toLocaleString()}</span>,
+        },
+        {
+            header: 'Admission Fee',
+            render: (row) => <span className="font-bold text-slate-700">₹{row.admissionFee.toLocaleString()}</span>,
+        },
+        {
+            header: 'Exam Fee',
+            render: (row) => <span className="font-bold text-slate-700">₹{row.examFee.toLocaleString()}</span>,
+        },
+        {
+            header: 'Lab Fee',
+            render: (row) => <span className="font-bold text-slate-700">₹{row.labFee.toLocaleString()}</span>,
+        },
+        {
+            header: 'Library Fee',
+            render: (row) => <span className="font-bold text-slate-700">₹{row.libraryFee.toLocaleString()}</span>,
+        },
+        {
+            header: 'Sports Fee',
+            render: (row) => <span className="font-bold text-slate-700">₹{row.sportsFee.toLocaleString()}</span>,
+        },
+        {
+            header: 'Total Annual Fee',
+            render: (row) => (
+                <span className="font-black text-[#0047AB] text-base">₹{row.total.toLocaleString()}</span>
+            ),
+        },
         {
             header: 'Actions',
-            render: () => (
-                <div className="flex gap-3">
-                    <button className="p-2 hover:bg-blue-50 text-[#0047AB] rounded-lg transition-colors"><FiEdit2 size={16} /></button>
-                    <button className="p-2 hover:bg-red-50 text-red-500 rounded-lg transition-colors"><FiTrash2 size={16} /></button>
+            render: (row) => (
+                <div className="flex gap-2">
+                    <button className="p-2 hover:bg-blue-50 rounded-lg transition-colors text-[#0047AB]">
+                        <FiEdit2 size={16} />
+                    </button>
+                    <button className="p-2 hover:bg-red-50 rounded-lg transition-colors text-red-500">
+                        <FiTrash2 size={16} />
+                    </button>
                 </div>
-            )
-        }
+            ),
+        },
     ];
 
     return (
-        <div className="p-4 md:p-8 bg-[#F8FAFC] min-h-screen animate-in fade-in duration-500">
+        <div className="p-4 md:p-10 bg-[#FBFBFE] min-h-screen animate-in fade-in duration-1000">
+            {/* Breadcrumbs */}
+            <div className="flex items-center gap-2 mb-4 px-2">
+                <span className="text-[11px] font-black tracking-widest text-[#0047AB] uppercase">Fee Structure</span>
+            </div>
+
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-center md:items-start mb-8 gap-6 md:gap-0 text-center md:text-left">
+            <div className="flex flex-col md:flex-row justify-between items-center md:items-start mb-10 gap-6 md:gap-0 px-2">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 mb-1">Fee Structure</h1>
-                    <p className="text-slate-500 font-bold text-xs md:text-sm">Manage and define fee breakdowns for all classes</p>
+                    <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight">Fee Structure</h1>
+                    <div className="flex items-center gap-3 mt-3">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#10B981]"></span>
+                        <p className="text-[#0047AB] font-black text-[13px] uppercase tracking-widest">Academic Year: 2024-2025</p>
+                    </div>
                 </div>
-                <button className="w-full md:w-auto flex items-center justify-center gap-2 bg-[#0047AB] hover:bg-[#003580] text-white px-8 py-3.5 rounded-2xl font-bold shadow-lg shadow-blue-100 transition-all active:scale-95">
+                <button
+                    className="w-full md:w-auto flex items-center justify-center gap-3 bg-[#0047AB] hover:bg-[#003580] text-white px-10 py-4 rounded-[1.5rem] font-black shadow-xl shadow-blue-200/50 transition-all hover:-translate-y-1 active:scale-95 text-sm uppercase tracking-widest"
+                >
                     <FiPlus size={20} />
-                    Add New Structure
+                    Add New Fee Structure
                 </button>
             </div>
 
-            {/* Filters */}
-            <Card className="border-none shadow-sm rounded-[2rem] p-4 md:p-8 bg-white mb-8">
-                <div className="flex flex-wrap gap-6 items-center">
-                    <div className="relative flex-1 min-w-[300px]">
-                        <FiSearch className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                        <input
-                            type="text"
-                            placeholder="Search class..."
-                            className="w-full pl-14 pr-6 py-4 bg-[#F1F5F9] border-none rounded-2xl text-slate-900 font-bold focus:ring-2 focus:ring-[#0047AB] transition-all"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
-                    </div>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <Card className="border-none shadow-[0_8px_30px_rgb(0,0,0,0.02)] rounded-[2rem] p-8 bg-gradient-to-br from-blue-50 to-white ring-1 ring-slate-100">
+                    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">Lowest Fee</p>
+                    <p className="text-3xl font-black text-[#0047AB]">₹24,500</p>
+                    <p className="text-xs font-bold text-slate-400 mt-1">Class 1-2</p>
+                </Card>
+                <Card className="border-none shadow-[0_8px_30px_rgb(0,0,0,0.02)] rounded-[2rem] p-8 bg-gradient-to-br from-purple-50 to-white ring-1 ring-slate-100">
+                    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">Highest Fee</p>
+                    <p className="text-3xl font-black text-[#D946EF]">₹37,000</p>
+                    <p className="text-xs font-bold text-slate-400 mt-1">Class 11-12</p>
+                </Card>
+                <Card className="border-none shadow-[0_8px_30px_rgb(0,0,0,0.02)] rounded-[2rem] p-8 bg-gradient-to-br from-green-50 to-white ring-1 ring-slate-100">
+                    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">Average Fee</p>
+                    <p className="text-3xl font-black text-[#10B981]">₹29,708</p>
+                    <p className="text-xs font-bold text-slate-400 mt-1">Across all classes</p>
+                </Card>
+            </div>
 
-                    <div className="relative" onClick={(e) => e.stopPropagation()}>
+            {/* Main Content Card */}
+            <div className="bg-white rounded-[3rem] shadow-[0_15px_50px_rgba(0,0,0,0.03)] border border-slate-100 p-6 md:p-10 mb-6 group transition-all duration-500 hover:shadow-[0_30px_70px_rgba(0,0,0,0.05)] ring-1 ring-slate-100">
+                <div className="flex flex-wrap items-center gap-6 mb-8">
+                    {/* Class Dropdown */}
+                    <div className="relative flex-1 md:flex-none group/drop" onClick={(e) => e.stopPropagation()}>
                         <button
                             onClick={() => setIsClassOpen(!isClassOpen)}
-                            className="flex items-center justify-between gap-12 bg-[#F1F5F9] text-slate-900 px-8 py-4 rounded-2xl font-bold min-w-[200px] hover:bg-slate-200 transition-all"
+                            className="w-full flex items-center justify-between gap-8 bg-slate-50 border-2 border-slate-50 text-slate-900 px-8 py-4.5 rounded-[1.25rem] font-black text-xs uppercase tracking-widest min-w-[220px] hover:bg-white hover:border-[#0047AB]/20 transition-all"
                         >
                             {selectedClass}
-                            <FiChevronDown className={`transition-transform duration-300 ${isClassOpen ? 'rotate-180' : ''}`} size={20} />
+                            <FiChevronDown className={`transition-transform duration-500 ${isClassOpen ? 'rotate-180' : ''}`} size={18} />
                         </button>
                         {isClassOpen && (
-                            <div className="absolute top-full left-0 mt-3 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 py-3 z-[100] max-h-[300px] overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-500">
+                            <div className="absolute top-[calc(100%+12px)] left-0 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 py-3 z-[100] max-h-[300px] overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-300 ring-1 ring-black/5 custom-scrollbar">
                                 {classes.map(c => (
                                     <button
                                         key={c}
@@ -100,7 +152,7 @@ const FeeStructure = () => {
                                             setSelectedClass(c);
                                             setIsClassOpen(false);
                                         }}
-                                        className={`w-full text-left px-6 py-3 text-sm font-bold transition-colors hover:bg-slate-50 ${selectedClass === c ? 'text-[#0047AB] bg-blue-50' : 'text-slate-600'}`}
+                                        className={`w-full text-left px-6 py-3 text-[13px] font-black uppercase tracking-widest transition-colors hover:bg-slate-50 ${selectedClass === c ? 'text-[#0047AB] bg-blue-50' : 'text-slate-600'}`}
                                     >
                                         {c}
                                     </button>
@@ -108,23 +160,21 @@ const FeeStructure = () => {
                             </div>
                         )}
                     </div>
-                </div>
-            </Card>
 
-            {/* Table */}
-            <Card className="border-none shadow-sm rounded-[2rem] p-8 bg-white overflow-hidden">
-                <div className="flex items-center gap-3 mb-8">
-                    <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-[#0047AB]">
-                        <FiBookOpen size={20} />
+                    <div className="flex-1 text-right">
+                        <p className="text-sm font-bold text-slate-500">Showing {feeStructure.length} of {baseFeeStructure.length} classes</p>
                     </div>
-                    <h2 className="text-xl font-bold text-slate-900">Academic Year 2024-25</h2>
                 </div>
-                <Table
-                    columns={columns}
-                    data={filteredData}
-                    className="border-none"
-                />
-            </Card>
+
+                {/* Table Section */}
+                <div className="border-t border-slate-50 pt-8 overflow-x-auto rounded-2xl">
+                    <Table
+                        columns={columns}
+                        data={feeStructure}
+                        className="border-none"
+                    />
+                </div>
+            </div>
         </div>
     );
 };

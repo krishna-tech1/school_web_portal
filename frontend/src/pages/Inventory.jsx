@@ -1,53 +1,249 @@
 import React, { useState, useEffect } from 'react';
-import { FiBox } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiChevronDown, FiAlertTriangle } from 'react-icons/fi';
+import { Card, Table } from '../components/ui';
 
 const Inventory = () => {
-    const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('All Categories');
+    const [selectedStatus, setSelectedStatus] = useState('All Status');
+    const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+    const [isStatusOpen, setIsStatusOpen] = useState(false);
 
+    const categories = ['All Categories', 'Stationery', 'Sports Equipment', 'Lab Equipment', 'Furniture', 'Electronics', 'Books'];
+    const statuses = ['All Status', 'In Stock', 'Low Stock', 'Out of Stock'];
+
+    // Close on click outside
     useEffect(() => {
-        // Simulate a slight delay for the premium feel
-        const timer = setTimeout(() => {
-            // We keep it in a "loading" or "coming soon" state as requested
-        }, 1500);
-        return () => clearTimeout(timer);
+        const handleClickOutside = () => {
+            setIsCategoryOpen(false);
+            setIsStatusOpen(false);
+        };
+        window.addEventListener('click', handleClickOutside);
+        return () => window.removeEventListener('click', handleClickOutside);
     }, []);
 
-    return (
-        <div className="p-8 bg-[#F8FAFC] min-h-[calc(100vh-64px)] flex flex-col items-center justify-center animate-in fade-in duration-500">
-            {/* Spinning Loader */}
-            <div className="relative mb-12">
-                <div className="w-32 h-32 border-8 border-slate-100 border-t-[#0047AB] rounded-full animate-spin"></div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <FiBox className="text-[#0047AB] animate-pulse" size={40} />
+    const baseInventory = [
+        { itemId: 'INV001', name: 'A4 Paper Ream', category: 'Stationery', quantity: 150, minQuantity: 50, unit: 'Reams', location: 'Store Room A', status: 'In Stock' },
+        { itemId: 'INV002', name: 'Whiteboard Markers', category: 'Stationery', quantity: 25, minQuantity: 30, unit: 'Boxes', location: 'Store Room A', status: 'Low Stock' },
+        { itemId: 'INV003', name: 'Football', category: 'Sports Equipment', quantity: 8, minQuantity: 10, unit: 'Pieces', location: 'Sports Room', status: 'Low Stock' },
+        { itemId: 'INV004', name: 'Chemistry Lab Beakers', category: 'Lab Equipment', quantity: 45, minQuantity: 20, unit: 'Pieces', location: 'Chemistry Lab', status: 'In Stock' },
+        { itemId: 'INV005', name: 'Student Desks', category: 'Furniture', quantity: 0, minQuantity: 5, unit: 'Pieces', location: 'Warehouse', status: 'Out of Stock' },
+        { itemId: 'INV006', name: 'Projectors', category: 'Electronics', quantity: 12, minQuantity: 8, unit: 'Pieces', location: 'IT Room', status: 'In Stock' },
+        { itemId: 'INV007', name: 'Basketball', category: 'Sports Equipment', quantity: 6, minQuantity: 8, unit: 'Pieces', location: 'Sports Room', status: 'Low Stock' },
+        { itemId: 'INV008', name: 'Reference Books', category: 'Books', quantity: 250, minQuantity: 100, unit: 'Books', location: 'Library', status: 'In Stock' },
+        { itemId: 'INV009', name: 'Microscopes', category: 'Lab Equipment', quantity: 15, minQuantity: 10, unit: 'Pieces', location: 'Biology Lab', status: 'In Stock' },
+        { itemId: 'INV010', name: 'Chairs', category: 'Furniture', quantity: 3, minQuantity: 10, unit: 'Pieces', location: 'Warehouse', status: 'Low Stock' },
+    ];
+
+    // Filter Logic
+    const inventoryList = baseInventory.filter(item => {
+        const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase()) ||
+            item.itemId.toLowerCase().includes(search.toLowerCase());
+        const matchesCategory = selectedCategory === 'All Categories' || item.category === selectedCategory;
+        const matchesStatus = selectedStatus === 'All Status' || item.status === selectedStatus;
+        return matchesSearch && matchesCategory && matchesStatus;
+    });
+
+    const lowStockCount = baseInventory.filter(item => item.status === 'Low Stock').length;
+    const outOfStockCount = baseInventory.filter(item => item.status === 'Out of Stock').length;
+    const totalItems = baseInventory.length;
+
+    const columns = [
+        {
+            header: 'Item ID',
+            accessor: 'itemId',
+        },
+        {
+            header: 'Item Name',
+            accessor: 'name',
+            render: (row) => <span className="font-semibold text-slate-700">{row.name}</span>,
+        },
+        {
+            header: 'Category',
+            accessor: 'category',
+        },
+        {
+            header: 'Quantity',
+            render: (row) => (
+                <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-900">{row.quantity}</span>
+                    <span className="text-xs text-slate-400">{row.unit}</span>
                 </div>
+            ),
+        },
+        {
+            header: 'Min. Quantity',
+            render: (row) => (
+                <span className="text-slate-600">{row.minQuantity} {row.unit}</span>
+            ),
+        },
+        {
+            header: 'Location',
+            accessor: 'location',
+        },
+        {
+            header: 'Status',
+            render: (row) => (
+                <div className={`px-4 py-1.5 rounded-lg text-xs font-black text-center inline-block min-w-[100px] ${row.status === 'In Stock'
+                    ? 'bg-[#10B981] text-white'
+                    : row.status === 'Low Stock'
+                        ? 'bg-[#F59E0B] text-white'
+                        : 'bg-[#EF4444] text-white'
+                    }`}>
+                    {row.status}
+                </div>
+            ),
+        },
+        {
+            header: 'Actions',
+            render: (row) => (
+                <div className="flex gap-2">
+                    <button className="p-2 hover:bg-blue-50 rounded-lg transition-colors text-[#0047AB]">
+                        <FiEdit2 size={16} />
+                    </button>
+                    <button className="p-2 hover:bg-red-50 rounded-lg transition-colors text-red-500">
+                        <FiTrash2 size={16} />
+                    </button>
+                </div>
+            ),
+        },
+    ];
+
+    return (
+        <div className="p-4 md:p-10 bg-[#FBFBFE] min-h-screen animate-in fade-in duration-1000">
+            {/* Breadcrumbs */}
+            <div className="flex items-center gap-2 mb-4 px-2">
+                <span className="text-[11px] font-black tracking-widest text-[#0047AB] uppercase">Inventory Management</span>
             </div>
 
-            {/* Content */}
-            <div className="text-center space-y-4 max-w-md">
-                <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-tight">
-                    Inventory System
-                </h1>
-                <div className="h-1.5 w-24 bg-[#0047AB] mx-auto rounded-full"></div>
-                <p className="text-slate-500 font-bold text-lg mt-6">
-                    This advanced feature is under heavy development.
-                </p>
-                <div className="pt-4 flex items-center justify-center gap-3">
-                    <span className="px-4 py-2 bg-blue-50 text-[#0047AB] rounded-xl text-sm font-black uppercase tracking-wider">
-                        Coming Soon
-                    </span>
-                    <div className="flex gap-1.5">
-                        <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce [animation-delay:0.2s]"></div>
-                        <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-center md:items-start mb-10 gap-6 md:gap-0 px-2">
+                <div>
+                    <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight">Inventory Management</h1>
+                    <div className="flex items-center gap-3 mt-3">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#10B981]"></span>
+                        <p className="text-[#0047AB] font-black text-[13px] uppercase tracking-widest">Total Items: {totalItems}</p>
                     </div>
                 </div>
+                <button
+                    className="w-full md:w-auto flex items-center justify-center gap-3 bg-[#0047AB] hover:bg-[#003580] text-white px-10 py-4 rounded-[1.5rem] font-black shadow-xl shadow-blue-200/50 transition-all hover:-translate-y-1 active:scale-95 text-sm uppercase tracking-widest"
+                >
+                    <FiPlus size={20} />
+                    Add New Item
+                </button>
             </div>
 
-            {/* Decorative Elements */}
-            <div className="mt-20 grid grid-cols-3 gap-8 opacity-20 filter grayscale">
-                <div className="w-16 h-16 bg-slate-200 rounded-2xl animate-pulse"></div>
-                <div className="w-16 h-16 bg-slate-200 rounded-2xl animate-pulse [animation-delay:0.3s]"></div>
-                <div className="w-16 h-16 bg-slate-200 rounded-2xl animate-pulse [animation-delay:0.6s]"></div>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <Card className="border-none shadow-[0_8px_30px_rgb(0,0,0,0.02)] rounded-[2rem] p-8 bg-gradient-to-br from-green-50 to-white ring-1 ring-slate-100">
+                    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">Total Items</p>
+                    <p className="text-3xl font-black text-[#10B981]">{totalItems}</p>
+                    <p className="text-xs font-bold text-slate-400 mt-1">In inventory</p>
+                </Card>
+                <Card className="border-none shadow-[0_8px_30px_rgb(0,0,0,0.02)] rounded-[2rem] p-8 bg-gradient-to-br from-amber-50 to-white ring-1 ring-slate-100">
+                    <div className="flex items-center gap-2 mb-2">
+                        <FiAlertTriangle className="text-[#F59E0B]" size={18} />
+                        <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Low Stock</p>
+                    </div>
+                    <p className="text-3xl font-black text-[#F59E0B]">{lowStockCount}</p>
+                    <p className="text-xs font-bold text-slate-400 mt-1">Items need restocking</p>
+                </Card>
+                <Card className="border-none shadow-[0_8px_30px_rgb(0,0,0,0.02)] rounded-[2rem] p-8 bg-gradient-to-br from-red-50 to-white ring-1 ring-slate-100">
+                    <div className="flex items-center gap-2 mb-2">
+                        <FiAlertTriangle className="text-[#EF4444]" size={18} />
+                        <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Out of Stock</p>
+                    </div>
+                    <p className="text-3xl font-black text-[#EF4444]">{outOfStockCount}</p>
+                    <p className="text-xs font-bold text-slate-400 mt-1">Items unavailable</p>
+                </Card>
+            </div>
+
+            {/* Main Content Card */}
+            <div className="bg-white rounded-[3rem] shadow-[0_15px_50px_rgba(0,0,0,0.03)] border border-slate-100 p-6 md:p-10 mb-6 group transition-all duration-500 hover:shadow-[0_30px_70px_rgba(0,0,0,0.05)] ring-1 ring-slate-100">
+                <div className="flex flex-wrap items-center gap-6">
+                    {/* Search */}
+                    <div className="relative flex-1 min-w-[300px] group/search">
+                        <FiSearch className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/search:text-[#0047AB] transition-colors" size={20} />
+                        <input
+                            type="text"
+                            placeholder="Search by item name or ID..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full pl-16 pr-6 py-4.5 bg-slate-50 border-2 border-slate-50 rounded-[1.25rem] text-[15px] font-bold focus:bg-white focus:border-[#0047AB]/20 focus:ring-4 focus:ring-[#0047AB]/5 transition-all outline-none placeholder:text-slate-400"
+                        />
+                    </div>
+
+                    <div className="flex gap-4 w-full md:w-auto">
+                        {/* Category Dropdown */}
+                        <div className="relative flex-1 md:flex-none group/drop" onClick={(e) => e.stopPropagation()}>
+                            <button
+                                onClick={() => {
+                                    setIsCategoryOpen(!isCategoryOpen);
+                                    setIsStatusOpen(false);
+                                }}
+                                className="w-full flex items-center justify-between gap-8 bg-slate-50 border-2 border-slate-50 text-slate-900 px-8 py-4.5 rounded-[1.25rem] font-black text-xs uppercase tracking-widest min-w-[200px] hover:bg-white hover:border-[#0047AB]/20 transition-all"
+                            >
+                                {selectedCategory}
+                                <FiChevronDown className={`transition-transform duration-500 ${isCategoryOpen ? 'rotate-180' : ''}`} size={18} />
+                            </button>
+                            {isCategoryOpen && (
+                                <div className="absolute top-[calc(100%+12px)] left-0 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 py-3 z-[100] animate-in fade-in slide-in-from-top-4 duration-300 ring-1 ring-black/5">
+                                    {categories.map(c => (
+                                        <button
+                                            key={c}
+                                            onClick={() => {
+                                                setSelectedCategory(c);
+                                                setIsCategoryOpen(false);
+                                            }}
+                                            className={`w-full text-left px-6 py-3 text-[13px] font-black uppercase tracking-widest transition-colors hover:bg-slate-50 ${selectedCategory === c ? 'text-[#0047AB] bg-blue-50' : 'text-slate-600'}`}
+                                        >
+                                            {c}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Status Dropdown */}
+                        <div className="relative flex-1 md:flex-none group/drop" onClick={(e) => e.stopPropagation()}>
+                            <button
+                                onClick={() => {
+                                    setIsStatusOpen(!isStatusOpen);
+                                    setIsCategoryOpen(false);
+                                }}
+                                className="w-full flex items-center justify-between gap-8 bg-slate-50 border-2 border-slate-50 text-slate-900 px-8 py-4.5 rounded-[1.25rem] font-black text-xs uppercase tracking-widest min-w-[180px] hover:bg-white hover:border-[#0047AB]/20 transition-all"
+                            >
+                                {selectedStatus}
+                                <FiChevronDown className={`transition-transform duration-500 ${isStatusOpen ? 'rotate-180' : ''}`} size={18} />
+                            </button>
+                            {isStatusOpen && (
+                                <div className="absolute top-[calc(100%+12px)] left-0 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 py-3 z-[100] animate-in fade-in slide-in-from-top-4 duration-300 ring-1 ring-black/5">
+                                    {statuses.map(s => (
+                                        <button
+                                            key={s}
+                                            onClick={() => {
+                                                setSelectedStatus(s);
+                                                setIsStatusOpen(false);
+                                            }}
+                                            className={`w-full text-left px-6 py-3 text-[13px] font-black uppercase tracking-widest transition-colors hover:bg-slate-50 ${selectedStatus === s ? 'text-[#0047AB] bg-blue-50' : 'text-slate-600'}`}
+                                        >
+                                            {s}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Table Section */}
+                <div className="mt-12 border-t border-slate-50 pt-8 overflow-x-auto rounded-2xl">
+                    <Table
+                        columns={columns}
+                        data={inventoryList}
+                        className="border-none"
+                    />
+                </div>
             </div>
         </div>
     );

@@ -74,39 +74,49 @@ const LeaveTracking = () => {
     ];
 
     return (
-        <div className="p-8 bg-[#F8FAFC] min-h-screen animate-in fade-in duration-500">
+        <div className="p-4 md:p-10 bg-[#FBFBFE] min-h-screen animate-in fade-in duration-1000">
+            {/* Breadcrumbs */}
+            <div className="flex items-center gap-2 mb-4 px-2">
+                <span className="text-[11px] font-black tracking-widest text-[#0047AB] uppercase">Leave Management</span>
+            </div>
+
             {/* Header */}
-            <div className="mb-10">
-                <h1 className="text-2xl font-bold text-slate-900 mb-1 font-inter">Leave Tracking</h1>
-                <p className="text-slate-500 font-medium">Manage staff leave requests and balance</p>
+            <div className="flex flex-col md:flex-row justify-between items-center md:items-start mb-10 gap-6 md:gap-0 px-2">
+                <div>
+                    <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight">Leave Tracking</h1>
+                    <div className="flex items-center gap-3 mt-3">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#F59E0B] animate-pulse"></span>
+                        <p className="text-[#0047AB] font-black text-[13px] uppercase tracking-widest">{leaveRequests.filter(r => r.status === 'Pending').length} Pending Requests</p>
+                    </div>
+                </div>
             </div>
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
                 {stats.map((stat, index) => (
-                    <Card key={index} className="border-none shadow-sm p-6 bg-white rounded-2xl">
+                    <div key={index} className="bg-white rounded-[2.5rem] shadow-[0_15px_50px_rgba(0,0,0,0.03)] border border-slate-50 p-8 transition-all duration-500 hover:shadow-[0_30px_70px_rgba(0,0,0,0.05)] hover:-translate-y-1 group ring-1 ring-slate-100">
                         <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-bold text-slate-500 mb-1">{stat.label}</p>
-                                <p className="text-2xl font-black text-slate-900">{stat.value}</p>
+                            <div className="space-y-2">
+                                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
+                                <p className="text-4xl font-black text-slate-900 tracking-tight">{stat.value}</p>
                             </div>
-                            <div className={`${stat.bg} p-2.5 rounded-lg`}>
-                                <stat.icon className="text-white" size={20} />
+                            <div className={`${stat.bg} w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-lg transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 ring-4 ring-white`}>
+                                <stat.icon size={28} />
                             </div>
                         </div>
-                    </Card>
+                    </div>
                 ))}
             </div>
 
             {/* Filter Tabs */}
-            <div className="inline-flex p-1.5 bg-slate-100 rounded-2xl mb-8">
+            <div className="flex items-center gap-2 mb-8 overflow-x-auto pb-2 px-2">
                 {tabs.map((tab) => (
                     <button
                         key={tab.label}
                         onClick={() => setActiveTab(tab.label)}
-                        className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === tab.label
-                            ? 'bg-white text-slate-900 shadow-sm'
-                            : 'text-slate-500 hover:text-slate-700'
+                        className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === tab.label
+                            ? 'bg-[#0047AB] text-white shadow-lg shadow-blue-200'
+                            : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
                             }`}
                     >
                         {tab.label} ({tab.count})
@@ -115,9 +125,9 @@ const LeaveTracking = () => {
             </div>
 
             {/* Leave Request Cards */}
-            <div className="space-y-6">
+            <div className="flex flex-col items-center space-y-6">
                 {filteredRequests.map((request) => (
-                    <Card key={request.id} className="border-none shadow-sm rounded-3xl p-8 bg-white max-w-4xl">
+                    <Card key={request.id} className="border-none shadow-sm rounded-3xl p-8 bg-white max-w-4xl w-full">
                         <div className="flex items-start gap-4 mb-8">
                             <img src={request.image} alt={request.name} className="w-16 h-16 rounded-full object-cover border-2 border-slate-50 shadow-sm" />
                             <div>

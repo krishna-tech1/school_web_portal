@@ -87,49 +87,63 @@ const Attendance = () => {
     ];
 
     return (
-        <div className="p-8 bg-[#F8FAFC] min-h-screen animate-in fade-in duration-500">
-            {/* Header */}
-            <div className="mb-10">
-                <h1 className="text-2xl font-bold text-slate-900 mb-1">Student Attendance</h1>
-                <p className="text-slate-500 font-medium font-inter">View and download attendance records for students</p>
+        <div className="p-4 md:p-10 bg-[#FBFBFE] min-h-screen animate-in fade-in duration-1000">
+            {/* Breadcrumbs */}
+            <div className="flex items-center gap-2 mb-4 px-2">
+                <span className="text-[11px] font-black tracking-widest text-[#0047AB] uppercase font-bold">Attendance Records</span>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row justify-between items-center md:items-start mb-10 gap-6 md:gap-0 px-2 transition-all">
+                <div>
+                    <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight">Student Attendance</h1>
+                    <div className="flex items-center gap-3 mt-3">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
+                        <p className="text-[#0047AB] font-black text-[13px] uppercase tracking-widest">Real-time tracking enabled</p>
+                    </div>
+                </div>
+                <button className="w-full md:w-auto flex items-center justify-center gap-3 bg-slate-900 hover:bg-black text-white px-10 py-4 rounded-[1.5rem] font-black shadow-xl shadow-slate-200/50 transition-all hover:-translate-y-1 active:scale-95 text-xs uppercase tracking-widest leading-none">
+                    <FiDownload size={18} />
+                    Export Full Report
+                </button>
+            </div>
+
+            {/* Premium Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
                 {stats.map((stat, index) => (
-                    <Card key={index} className="border-none shadow-sm p-6 bg-white rounded-2xl">
+                    <div key={index} className="bg-white rounded-[2.5rem] shadow-[0_15px_50px_rgba(0,0,0,0.03)] border border-slate-50 p-8 transition-all duration-500 hover:shadow-[0_30px_70px_rgba(0,0,0,0.05)] hover:-translate-y-1 group ring-1 ring-slate-100">
                         <div className="flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-xs font-bold text-slate-400 font-inter">{stat.label}</p>
-                                <p className="text-2xl font-black text-slate-900">{stat.value}</p>
-                                <p className="text-xs font-bold text-slate-400 font-inter">{stat.subValue}</p>
+                            <div className="space-y-2">
+                                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
+                                <p className="text-4xl font-black text-slate-900 tracking-tight">{stat.value}</p>
+                                <p className="text-[12px] font-bold text-slate-500">{stat.subValue}</p>
                             </div>
-                            <div className={`${stat.iconBg} p-3 rounded-xl shadow-lg shadow-gray-200/50`}>
-                                <stat.icon className="text-white" size={24} />
+                            <div className={`${stat.iconBg} w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-lg transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 ring-4 ring-white`}>
+                                <stat.icon size={28} />
                             </div>
                         </div>
-                    </Card>
+                    </div>
                 ))}
             </div>
 
-            {/* Filters Section */}
-            <Card className="border-none shadow-sm rounded-3xl p-8 bg-white mb-10">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
-                    <div className="relative" onClick={(e) => e.stopPropagation()}>
-                        <label className="block text-sm font-bold text-slate-900 mb-4 text-center md:text-left">Class</label>
+            {/* Refined Filter System */}
+            <div className="bg-white rounded-[3rem] shadow-[0_15px_50px_rgba(0,0,0,0.03)] border border-slate-100 p-8 md:p-10 mb-6 group transition-all duration-500 ring-1 ring-slate-100">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="relative group/drop" onClick={(e) => e.stopPropagation()}>
+                        <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 ml-2">Academic Class</label>
                         <button
                             onClick={() => {
                                 setIsClassOpen(!isClassOpen);
                                 setIsSectionOpen(false);
                                 setIsMonthOpen(false);
                             }}
-                            className="w-full flex items-center justify-between px-6 py-4 bg-[#f3f4f6] text-slate-900 rounded-xl font-bold shadow-sm hover:bg-slate-200 transition-all border-none"
+                            className="w-full flex items-center justify-between px-8 py-4.5 bg-slate-50 border-2 border-slate-50 rounded-[1.25rem] font-black text-[13px] uppercase tracking-widest text-slate-900 transition-all hover:bg-white hover:border-[#0047AB]/20"
                         >
                             {selectedClass}
-                            <FiChevronDown className={`transition-transform duration-300 ${isClassOpen ? 'rotate-180' : ''}`} size={20} />
+                            <FiChevronDown className={`transition-transform duration-500 ${isClassOpen ? 'rotate-180' : ''}`} size={20} />
                         </button>
                         {isClassOpen && (
-                            <div className="absolute top-full left-0 mt-3 w-full bg-white rounded-xl shadow-2xl border border-slate-100 py-3 z-[100] max-h-[300px] overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-500">
+                            <div className="absolute top-[calc(100%+12px)] left-0 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 py-3 z-[100] max-h-[300px] overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-300 ring-1 ring-black/5 custom-scrollbar">
                                 {classes.map(c => (
                                     <button
                                         key={c}
@@ -137,7 +151,7 @@ const Attendance = () => {
                                             setSelectedClass(c);
                                             setIsClassOpen(false);
                                         }}
-                                        className={`w-full text-left px-6 py-3 text-sm font-bold transition-colors hover:bg-slate-50 ${selectedClass === c ? 'text-[#0047AB] bg-blue-50' : 'text-slate-600'}`}
+                                        className={`w-full text-left px-8 py-3.5 text-[13px] font-black uppercase tracking-widest transition-colors hover:bg-slate-50 ${selectedClass === c ? 'text-[#0047AB] bg-blue-50' : 'text-slate-600'}`}
                                     >
                                         {c}
                                     </button>
@@ -146,21 +160,21 @@ const Attendance = () => {
                         )}
                     </div>
 
-                    <div className="relative" onClick={(e) => e.stopPropagation()}>
-                        <label className="block text-sm font-bold text-slate-900 mb-4 text-center md:text-left">Section</label>
+                    <div className="relative group/drop" onClick={(e) => e.stopPropagation()}>
+                        <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 ml-2">Division / Section</label>
                         <button
                             onClick={() => {
                                 setIsSectionOpen(!isSectionOpen);
                                 setIsClassOpen(false);
                                 setIsMonthOpen(false);
                             }}
-                            className="w-full flex items-center justify-between px-6 py-4 bg-[#f3f4f6] text-slate-900 rounded-xl font-bold shadow-sm hover:bg-slate-200 transition-all border-none"
+                            className="w-full flex items-center justify-between px-8 py-4.5 bg-slate-50 border-2 border-slate-50 rounded-[1.25rem] font-black text-[13px] uppercase tracking-widest text-slate-900 transition-all hover:bg-white hover:border-[#0047AB]/20"
                         >
                             {selectedSection}
-                            <FiChevronDown className={`transition-transform duration-300 ${isSectionOpen ? 'rotate-180' : ''}`} size={20} />
+                            <FiChevronDown className={`transition-transform duration-500 ${isSectionOpen ? 'rotate-180' : ''}`} size={20} />
                         </button>
                         {isSectionOpen && (
-                            <div className="absolute top-full left-0 mt-3 w-full bg-white rounded-xl shadow-2xl border border-slate-100 py-3 z-[100] animate-in fade-in slide-in-from-top-4 duration-500">
+                            <div className="absolute top-[calc(100%+12px)] left-0 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 py-3 z-[100] animate-in fade-in slide-in-from-top-4 duration-300 ring-1 ring-black/5">
                                 {sections.map(s => (
                                     <button
                                         key={s}
@@ -168,7 +182,7 @@ const Attendance = () => {
                                             setSelectedSection(s);
                                             setIsSectionOpen(false);
                                         }}
-                                        className={`w-full text-left px-6 py-3 text-sm font-bold transition-colors hover:bg-slate-50 ${selectedSection === s ? 'text-[#0047AB] bg-blue-50' : 'text-slate-600'}`}
+                                        className={`w-full text-left px-8 py-3.5 text-[13px] font-black uppercase tracking-widest transition-colors hover:bg-slate-50 ${selectedSection === s ? 'text-[#0047AB] bg-blue-50' : 'text-slate-600'}`}
                                     >
                                         {s}
                                     </button>
@@ -177,21 +191,21 @@ const Attendance = () => {
                         )}
                     </div>
 
-                    <div className="relative" onClick={(e) => e.stopPropagation()}>
-                        <label className="block text-sm font-bold text-slate-900 mb-4 text-center md:text-left">Month</label>
+                    <div className="relative group/drop" onClick={(e) => e.stopPropagation()}>
+                        <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 ml-2">Reporting Period</label>
                         <button
                             onClick={() => {
                                 setIsMonthOpen(!isMonthOpen);
                                 setIsClassOpen(false);
                                 setIsSectionOpen(false);
                             }}
-                            className="w-full flex items-center justify-between px-6 py-4 bg-[#f3f4f6] text-slate-900 rounded-xl font-bold shadow-sm hover:bg-slate-200 transition-all border-none"
+                            className="w-full flex items-center justify-between px-8 py-4.5 bg-slate-50 border-2 border-slate-50 rounded-[1.25rem] font-black text-[13px] uppercase tracking-widest text-slate-900 transition-all hover:bg-white hover:border-[#0047AB]/20"
                         >
                             {selectedMonth}
-                            <FiChevronDown className={`transition-transform duration-300 ${isMonthOpen ? 'rotate-180' : ''}`} size={20} />
+                            <FiChevronDown className={`transition-transform duration-500 ${isMonthOpen ? 'rotate-180' : ''}`} size={20} />
                         </button>
                         {isMonthOpen && (
-                            <div className="absolute top-full left-0 mt-3 w-full bg-white rounded-xl shadow-2xl border border-slate-100 py-3 z-[100] animate-in fade-in slide-in-from-top-4 duration-500">
+                            <div className="absolute top-[calc(100%+12px)] left-0 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 py-3 z-[100] animate-in fade-in slide-in-from-top-4 duration-300 ring-1 ring-black/5">
                                 {months.map(m => (
                                     <button
                                         key={m}
@@ -199,7 +213,7 @@ const Attendance = () => {
                                             setSelectedMonth(m);
                                             setIsMonthOpen(false);
                                         }}
-                                        className={`w-full text-left px-6 py-3 text-sm font-bold transition-colors hover:bg-slate-50 ${selectedMonth === m ? 'text-[#0047AB] bg-blue-50' : 'text-slate-600'}`}
+                                        className={`w-full text-left px-8 py-3.5 text-[13px] font-black uppercase tracking-widest transition-colors hover:bg-slate-50 ${selectedMonth === m ? 'text-[#0047AB] bg-blue-50' : 'text-slate-600'}`}
                                     >
                                         {m}
                                     </button>
@@ -208,26 +222,29 @@ const Attendance = () => {
                         )}
                     </div>
                 </div>
-                <button className="w-full flex items-center justify-center gap-2 bg-[#0047AB] hover:bg-[#003580] text-white py-4 rounded-xl font-bold transition-all shadow-lg shadow-blue-100 active:scale-[0.99]">
-                    <FiDownload size={20} />
-                    Download Report
-                </button>
-            </Card>
 
-            {/* List Table Section */}
-            <Card className="border-none shadow-sm rounded-3xl p-8 bg-white overflow-hidden">
-                <div className="mb-8">
-                    <h2 className="text-lg font-bold text-slate-900 mb-1">
-                        Student Attendance - {selectedClass === 'All Class' ? 'All Classes' : selectedClass} {selectedSection === 'All Section' ? '(All Sections)' : `Section ${selectedSection}`}
-                    </h2>
-                    <p className="text-slate-400 font-bold text-sm">Monthly attendance records for {selectedMonth.split(',')[1].trim()}</p>
+                {/* Table Section */}
+                <div className="mt-12 border-t border-slate-50 pt-10">
+                    <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 px-2">
+                        <div>
+                            <h2 className="text-xl font-black text-slate-900 tracking-tight"> Detailed Summary</h2>
+                            <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                                {selectedClass === 'All Class' ? 'All Classes' : selectedClass} • {selectedSection === 'All Section' ? 'All Sections' : `Section ${selectedSection}`}
+                            </p>
+                        </div>
+                        <div className="bg-blue-50 px-4 py-2 rounded-xl">
+                            <span className="text-[11px] font-black text-[#0047AB] uppercase tracking-widest">{selectedMonth}</span>
+                        </div>
+                    </div>
+                    <div className="overflow-hidden rounded-2xl border border-slate-50">
+                        <Table
+                            columns={columns}
+                            data={attendanceData}
+                            className="border-none"
+                        />
+                    </div>
                 </div>
-                <Table
-                    columns={columns}
-                    data={attendanceData}
-                    className="border-none"
-                />
-            </Card>
+            </div>
         </div>
     );
 };
