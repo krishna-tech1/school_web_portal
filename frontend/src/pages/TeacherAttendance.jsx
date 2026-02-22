@@ -85,19 +85,38 @@ const TeacherAttendance = () => {
             </div>
 
             {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-10">
-                <Card className="border-none bg-gradient-to-br from-green-500 to-green-600 text-white p-6 rounded-[2rem] shadow-xl shadow-green-200 cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-green-300 hover:-translate-y-2 hover:scale-105">
-                    <p className="text-xs font-black opacity-90 uppercase tracking-widest mb-1">Present</p>
-                    <p className="text-3xl font-black">42</p>
-                </Card>
-                <Card className="border-none bg-gradient-to-br from-amber-500 to-amber-600 text-white p-6 rounded-[2rem] shadow-xl shadow-amber-200 cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-amber-300 hover:-translate-y-2 hover:scale-105">
-                    <p className="text-xs font-black opacity-90 uppercase tracking-widest mb-1">Late</p>
-                    <p className="text-3xl font-black">5</p>
-                </Card>
-                <Card className="border-none bg-gradient-to-br from-blue-500 to-blue-600 text-white p-6 rounded-[2rem] shadow-xl shadow-blue-200 cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-blue-300 hover:-translate-y-2 hover:scale-105">
-                    <p className="text-xs font-black opacity-90 uppercase tracking-widest mb-1">On Leave</p>
-                    <p className="text-3xl font-black">2</p>
-                </Card>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                {[
+                    { label: 'Present', value: attendanceData.filter(d => d.status === 'Present').length, gradient: 'from-emerald-500 to-teal-600', iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-600', icon: FiCheckCircle },
+                    { label: 'Late', value: attendanceData.filter(d => d.status === 'Late').length, gradient: 'from-amber-400 to-orange-500', iconBg: 'bg-amber-500/10', iconColor: 'text-amber-600', icon: FiAlertCircle },
+                    { label: 'On Leave / Absent', value: attendanceData.filter(d => d.status === 'Absent').length, gradient: 'from-blue-500 to-indigo-600', iconBg: 'bg-blue-500/10', iconColor: 'text-blue-600', icon: FiXCircle },
+                ].map((stat, i) => {
+                    const Icon = stat.icon;
+                    return (
+                        <div
+                            key={i}
+                            className="group relative bg-white border border-slate-100 rounded-[2rem] p-6 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.1)] transition-all duration-500 hover:-translate-y-1.5 overflow-hidden"
+                        >
+                            <div className={`absolute -right-10 -top-10 w-40 h-40 bg-gradient-to-br ${stat.gradient} opacity-[0.03] group-hover:opacity-[0.08] rounded-full transition-opacity duration-700 blur-2xl`} />
+
+                            <div className="relative z-10">
+                                <div className="mb-6">
+                                    <div className={`w-fit p-4 rounded-2xl ${stat.iconBg} ${stat.iconColor} transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3`}>
+                                        <Icon size={26} strokeWidth={2.5} />
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="text-slate-500 text-sm font-bold uppercase tracking-wider">{stat.label}</h3>
+                                    <span className="text-3xl font-black text-slate-900 tracking-tight">{stat.value}</span>
+                                </div>
+                            </div>
+
+                            <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-slate-50 overflow-hidden">
+                                <div className={`h-full bg-gradient-to-r ${stat.gradient} transition-all duration-1000 ease-out w-1/3 group-hover:w-full`} />
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Main Content */}

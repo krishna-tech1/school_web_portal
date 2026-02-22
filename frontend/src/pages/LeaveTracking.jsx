@@ -93,19 +93,40 @@ const LeaveTracking = () => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-                {stats.map((stat, index) => (
-                    <div key={index} className="bg-white rounded-[2.5rem] shadow-[0_15px_50px_rgba(0,0,0,0.03)] border border-slate-50 p-8 transition-all duration-500 hover:shadow-[0_30px_70px_rgba(0,0,0,0.05)] hover:-translate-y-1 group ring-1 ring-slate-100">
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-2">
-                                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
-                                <p className="text-4xl font-black text-slate-900 tracking-tight">{stat.value}</p>
+                {[
+                    { label: 'Pending Request', value: leaveRequests.filter(r => r.status === 'Pending').length, icon: FiClock, gradient: 'from-amber-400 to-orange-500', iconBg: 'bg-amber-500/10', iconColor: 'text-amber-600' },
+                    { label: 'Approved', value: leaveRequests.filter(r => r.status === 'Approved').length, icon: FiCheckCircle, gradient: 'from-emerald-500 to-teal-600', iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-600' },
+                    { label: 'Rejected', value: leaveRequests.filter(r => r.status === 'Rejected').length, icon: FiXCircle, gradient: 'from-rose-500 to-red-600', iconBg: 'bg-rose-500/10', iconColor: 'text-rose-600' },
+                    { label: 'Total Requests', value: leaveRequests.length, icon: FiList, gradient: 'from-blue-500 to-indigo-600', iconBg: 'bg-blue-500/10', iconColor: 'text-blue-600' },
+                ].map((stat, index) => {
+                    const Icon = stat.icon;
+                    return (
+                        <div
+                            key={index}
+                            className="group relative bg-white border border-slate-100 rounded-[2rem] p-6 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.1)] transition-all duration-500 hover:-translate-y-1.5 overflow-hidden"
+                        >
+                            <div className={`absolute -right-10 -top-10 w-40 h-40 bg-gradient-to-br ${stat.gradient} opacity-[0.03] group-hover:opacity-[0.08] rounded-full transition-opacity duration-700 blur-2xl`} />
+
+                            <div className="relative z-10">
+                                <div className="mb-6">
+                                    <div className={`w-fit p-4 rounded-2xl ${stat.iconBg} ${stat.iconColor} transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3`}>
+                                        <Icon size={26} strokeWidth={2.5} />
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="text-slate-500 text-sm font-bold uppercase tracking-wider">{stat.label}</h3>
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-3xl font-black text-slate-900 tracking-tight">{stat.value}</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div className={`${stat.bg} w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-lg transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 ring-4 ring-white`}>
-                                <stat.icon size={28} />
+
+                            <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-slate-50 overflow-hidden">
+                                <div className={`h-full bg-gradient-to-r ${stat.gradient} transition-all duration-1000 ease-out w-1/4 group-hover:w-full`} />
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             {/* Filter Tabs */}

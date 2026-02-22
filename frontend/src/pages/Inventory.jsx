@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiChevronDown, FiAlertTriangle } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiChevronDown, FiAlertTriangle, FiPackage } from 'react-icons/fi';
 import { Card, Table } from '../components/ui';
 
 const Inventory = () => {
@@ -135,27 +135,40 @@ const Inventory = () => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <Card className="border-none shadow-[0_8px_30px_rgb(0,0,0,0.02)] rounded-[2rem] p-8 bg-gradient-to-br from-green-50 to-white ring-1 ring-slate-100">
-                    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">Total Items</p>
-                    <p className="text-3xl font-black text-[#10B981]">{totalItems}</p>
-                    <p className="text-xs font-bold text-slate-400 mt-1">In inventory</p>
-                </Card>
-                <Card className="border-none shadow-[0_8px_30px_rgb(0,0,0,0.02)] rounded-[2rem] p-8 bg-gradient-to-br from-amber-50 to-white ring-1 ring-slate-100">
-                    <div className="flex items-center gap-2 mb-2">
-                        <FiAlertTriangle className="text-[#F59E0B]" size={18} />
-                        <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Low Stock</p>
-                    </div>
-                    <p className="text-3xl font-black text-[#F59E0B]">{lowStockCount}</p>
-                    <p className="text-xs font-bold text-slate-400 mt-1">Items need restocking</p>
-                </Card>
-                <Card className="border-none shadow-[0_8px_30px_rgb(0,0,0,0.02)] rounded-[2rem] p-8 bg-gradient-to-br from-red-50 to-white ring-1 ring-slate-100">
-                    <div className="flex items-center gap-2 mb-2">
-                        <FiAlertTriangle className="text-[#EF4444]" size={18} />
-                        <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Out of Stock</p>
-                    </div>
-                    <p className="text-3xl font-black text-[#EF4444]">{outOfStockCount}</p>
-                    <p className="text-xs font-bold text-slate-400 mt-1">Items unavailable</p>
-                </Card>
+                {[
+                    { label: 'Total Items', value: totalItems, icon: FiPackage, gradient: 'from-emerald-500 to-teal-600', iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-600', desc: 'In inventory' },
+                    { label: 'Low Stock', value: lowStockCount, icon: FiAlertTriangle, gradient: 'from-amber-400 to-orange-500', iconBg: 'bg-amber-500/10', iconColor: 'text-amber-600', desc: 'Need restocking' },
+                    { label: 'Out of Stock', value: outOfStockCount, icon: FiAlertTriangle, gradient: 'from-rose-500 to-red-600', iconBg: 'bg-rose-500/10', iconColor: 'text-rose-600', desc: 'Unavailable' },
+                ].map((stat, i) => {
+                    const Icon = stat.icon;
+                    return (
+                        <div
+                            key={i}
+                            className="group relative bg-white border border-slate-100 rounded-[2rem] p-6 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.1)] transition-all duration-500 hover:-translate-y-1.5 overflow-hidden"
+                        >
+                            <div className={`absolute -right-10 -top-10 w-40 h-40 bg-gradient-to-br ${stat.gradient} opacity-[0.03] group-hover:opacity-[0.08] rounded-full transition-opacity duration-700 blur-2xl`} />
+
+                            <div className="relative z-10">
+                                <div className="mb-6">
+                                    <div className={`w-fit p-4 rounded-2xl ${stat.iconBg} ${stat.iconColor} transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3`}>
+                                        <Icon size={26} strokeWidth={2.5} />
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="text-slate-500 text-sm font-bold uppercase tracking-wider">{stat.label}</h3>
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-3xl font-black text-slate-900 tracking-tight">{stat.value}</span>
+                                    </div>
+                                    <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest mt-1 opacity-60">{stat.desc}</p>
+                                </div>
+                            </div>
+
+                            <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-slate-50 overflow-hidden">
+                                <div className={`h-full bg-gradient-to-r ${stat.gradient} transition-all duration-1000 ease-out w-1/3 group-hover:w-full`} />
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Main Content Card */}
