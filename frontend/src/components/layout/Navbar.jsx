@@ -53,7 +53,7 @@ const Navbar = ({ onMenuClick, isMobileOpen, isCollapsed, setIsCollapsed }) => {
                             <FaGraduationCap className="text-[#0047AB] text-xl" />
                         </div>
                         <div className="flex flex-col">
-                            <h1 className="text-[13px] md:text-sm font-black tracking-[0.15em] leading-none uppercase text-white/90">XAN MATRICULATION SCHOOL</h1>
+                            <h1 className="text-[13px] md:text-sm font-black tracking-[0.15em] leading-none uppercase text-white/90">X'AN MATRICULATION SCHOOL</h1>
                             <p className="text-[10px] font-bold text-[#FFD700] tracking-widest mt-1 uppercase leading-none">{getPageTitle()}</p>
                         </div>
                     </div>

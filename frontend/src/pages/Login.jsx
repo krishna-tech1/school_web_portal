@@ -53,7 +53,7 @@ const Login = () => {
 
                     {/* Title */}
                     <h1 className="text-3xl md:text-4xl font-black text-[#0047AB] text-center mb-4 lg:mb-10">Login</h1>
-                    <p className="lg:hidden text-center text-slate-500 font-bold text-sm mb-10">Xan Matriculation School</p>
+                    <p className="lg:hidden text-center text-slate-500 font-bold text-sm mb-10">X'an Matriculation School</p>
 
                     {/* Role Switcher */}
                     <div className="flex bg-white border border-[#0047AB] rounded-lg mb-10 overflow-hidden">
@@ -160,7 +160,7 @@ const Login = () => {
                     </div>
 
                     <h2 className="text-4xl xl:text-5xl font-extrabold tracking-tight drop-shadow-2xl">
-                        Xan Matriculation School
+                        X'an Matriculation School
                     </h2>
                 </div>
 

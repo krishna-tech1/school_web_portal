@@ -81,8 +81,8 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen, collapsed }) => {
                     {/* Logo area */}
                     <div className="h-24 flex flex-col items-center justify-center border-b border-white/10 px-4 shrink-0 transition-all">
                         <div className="flex flex-col items-center text-center">
-                            <p className="text-[#FFD700] font-black text-sm tracking-[0.2em] leading-tight uppercase">God is Love</p>
-                            <p className="text-[#FFD700] font-black text-sm tracking-[0.2em] leading-tight mt-1 uppercase">Love is God</p>
+                            <p className="text-[#FFD700] font-black text-sm tracking-[0.2em] leading-tight uppercase">Where Love is</p>
+                            <p className="text-[#FFD700] font-black text-sm tracking-[0.2em] leading-tight mt-1 uppercase">There God is</p>
                         </div>
                     </div>
 
