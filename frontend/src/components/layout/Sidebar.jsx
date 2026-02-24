@@ -75,7 +75,7 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen, collapsed }) => {
 
     return (
         <aside
-            className={`bg-[#0047AB] text-white h-screen fixed inset-y-0 left-0 z-50 lg:sticky lg:top-0 transition-all duration-300 shadow-2xl lg:shadow-none 
+            className={`bg-[#0047AB] text-white h-full fixed inset-y-0 left-0 z-50 lg:sticky lg:top-0 transition-all duration-300 shadow-2xl lg:shadow-none 
                 ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} 
                 ${collapsed ? 'lg:w-0 overflow-hidden' : 'lg:w-72'} w-72`}
         >
@@ -100,7 +100,7 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen, collapsed }) => {
                     </div>
 
                     {/* Navigation */}
-                    <nav className="p-4 flex-1 space-y-1 overflow-y-auto custom-scrollbar">
+                    <nav className="p-4 pb-24 flex-1 space-y-1 overflow-y-auto custom-scrollbar">
                         {menuItems.map((item) => (
                             <div key={item.label}>
                                 {item.path ? (
