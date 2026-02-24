@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { FiBell, FiSearch, FiUser, FiLogOut, FiSettings, FiMenu, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Logo from '../../assets/logo.png';
 
 const Navbar = ({ onMenuClick, isMobileOpen, isCollapsed, setIsCollapsed }) => {
     const [showProfileMenu, setShowProfileMenu] = useState(false);
+    const { user } = useSelector((state) => state.auth);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -74,12 +76,12 @@ const Navbar = ({ onMenuClick, isMobileOpen, isCollapsed, setIsCollapsed }) => {
                             className="flex items-center gap-3 p-1 rounded-full hover:bg-white/10 transition-all group"
                         >
                             <img
-                                src="https://ui-avatars.com/api/?name=Admin&background=ffffff&color=0047AB"
-                                alt="Admin"
+                                src={`https://ui-avatars.com/api/?name=${user?.name || 'User'}&background=ffffff&color=0047AB`}
+                                alt="User Profile"
                                 className="h-8 w-8 md:h-10 md:w-10 rounded-full border-2 border-white/20 shadow-sm"
                             />
                             <div className="text-left hidden md:flex items-center gap-2">
-                                <p className="text-sm font-bold">Admin</p>
+                                <p className="text-sm font-bold">{user?.name || 'User'}</p>
                                 <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M1 1L5 5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
@@ -89,9 +91,9 @@ const Navbar = ({ onMenuClick, isMobileOpen, isCollapsed, setIsCollapsed }) => {
                         {/* Dropdown Menu */}
                         {showProfileMenu && (
                             <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 animate-in fade-in slide-in-from-top-2 duration-300 z-50 overflow-hidden">
-                                <div className="px-4 py-3 border-b border-slate-50 md:hidden">
-                                    <p className="text-sm font-bold text-slate-900">Admin User</p>
-                                    <p className="text-xs text-slate-500">admin@school.com</p>
+                                <div className="px-4 py-3 border-b border-slate-50">
+                                    <p className="text-sm font-bold text-slate-900">{user?.name || 'User Profile'}</p>
+                                    <p className="text-xs text-slate-500">{user?.email || 'user@school.in'}</p>
                                 </div>
                                 <button
                                     onClick={() => { navigate('/settings'); setShowProfileMenu(false); }}
