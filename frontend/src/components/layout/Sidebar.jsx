@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { NavLink } from 'react-router-dom';
 import { FiGrid, FiCheckSquare, FiCreditCard, FiBox, FiFileText, FiSettings, FiX } from 'react-icons/fi';
 import { FaGraduationCap, FaChalkboardTeacher } from 'react-icons/fa';
@@ -6,6 +7,7 @@ import { GoTriangleDown } from 'react-icons/go';
 
 const Sidebar = ({ isMobileOpen, setIsMobileOpen, collapsed }) => {
     const [openMenus, setOpenMenus] = useState(['Students']);
+    const { user } = useSelector((state) => state.auth);
 
     const toggleMenu = (label) => {
         if (openMenus.includes(label)) {
@@ -15,50 +17,61 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen, collapsed }) => {
         }
     };
 
-    const menuItems = [
-        { path: '/dashboard', icon: FiGrid, label: 'Dashboard', hasSub: false },
+    const allMenuItems = [
+        { path: '/dashboard', icon: FiGrid, label: 'Dashboard', hasSub: false, roles: ['Administrator', 'TeacherManager', 'StudentManager', 'FeeManager', 'InventoryManager'] },
         {
             label: 'Students',
             icon: FaGraduationCap,
             hasSub: true,
+            roles: ['Administrator', 'StudentManager'],
             subItems: [
-                { path: '/students', label: 'Student List' },
-                { path: '/students/add', label: 'Add Student' },
-                { path: '/students/promotion', label: 'Promotion' },
+                { path: '/students', label: 'Student List', roles: ['Administrator', 'StudentManager'] },
+                { path: '/students/add', label: 'Add Student', roles: ['Administrator', 'StudentManager'] },
+                { path: '/students/promotion', label: 'Promotion', roles: ['Administrator', 'StudentManager'] },
             ]
         },
         {
             label: 'Teacher',
             icon: FaChalkboardTeacher,
             hasSub: true,
+            roles: ['Administrator', 'TeacherManager'],
             subItems: [
-                { path: '/staff', label: 'Teacher List' },
-                { path: '/staff/add', label: 'Add Teacher' },
-                { path: '/staff/leave-tracking', label: 'Leave Tracking' },
+                { path: '/staff', label: 'Teacher List', roles: ['Administrator', 'TeacherManager'] },
+                { path: '/staff/add', label: 'Add Teacher', roles: ['Administrator', 'TeacherManager'] },
+                { path: '/staff/leave-tracking', label: 'Leave Tracking', roles: ['Administrator', 'TeacherManager'] },
             ]
         },
         {
             label: 'Attendance',
             icon: FiCheckSquare,
             hasSub: true,
+            roles: ['Administrator', 'TeacherManager', 'StudentManager'],
             subItems: [
-                { path: '/attendance', label: 'Student Attendance' },
-                { path: '/attendance/teacher', label: 'Teacher Attendance' },
+                { path: '/attendance', label: 'Student Attendance', roles: ['Administrator', 'StudentManager'] },
+                { path: '/attendance/teacher', label: 'Teacher Attendance', roles: ['Administrator', 'TeacherManager'] },
             ]
         },
         {
             label: 'Fees',
             icon: FiCreditCard,
             hasSub: true,
+            roles: ['Administrator', 'FeeManager'],
             subItems: [
-                { path: '/fees/structure', label: 'Fee Structure' },
-                { path: '/fees/pending', label: 'Pending Fees' },
+                { path: '/fees/structure', label: 'Fee Structure', roles: ['Administrator', 'FeeManager'] },
+                { path: '/fees/pending', label: 'Pending Fees', roles: ['Administrator', 'FeeManager'] },
             ]
         },
-        { path: '/inventory', icon: FiBox, label: 'Inventory', hasSub: true },
-        { path: '/reports', icon: FiFileText, label: 'Reports', hasSub: false },
-        { path: '/settings', icon: FiSettings, label: 'Settings', hasSub: false },
+        { path: '/inventory', icon: FiBox, label: 'Inventory', hasSub: true, roles: ['Administrator', 'InventoryManager'] },
+        { path: '/reports', icon: FiFileText, label: 'Reports', hasSub: false, roles: ['Administrator'] },
+        { path: '/settings', icon: FiSettings, label: 'Settings', hasSub: false, roles: ['Administrator'] },
     ];
+
+    const menuItems = allMenuItems
+        .filter(item => item.roles.includes(user?.role))
+        .map(item => ({
+            ...item,
+            subItems: item.subItems?.filter(sub => sub.roles.includes(user?.role))
+        }));
 
     return (
         <aside

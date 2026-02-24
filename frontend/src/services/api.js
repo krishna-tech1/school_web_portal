@@ -149,9 +149,15 @@ export const authAPI = {
         // Mock login - updated with user specific admin credentials
         return new Promise((resolve, reject) => {
             const adminCredentials = [
-                { email: 'admin@school.in', password: 'admin2026@', name: 'Primary Admin' },
-                { email: 'xan@admin.in', password: 'xan2026@', name: 'Xan Admin' },
-                { email: 'xan@school.in', password: 'XAN2026', name: 'Xan School Admin' }
+                // Admins
+                { email: 'admin@school.in', password: 'admin2026@', name: 'Primary Admin', role: 'Administrator' },
+                { email: 'xan@admin.in', password: 'xan2026@', name: 'Xan Admin', role: 'Administrator' },
+                { email: 'xan@school.in', password: 'XAN2026', name: 'Xan School Admin', role: 'Administrator' },
+                // Office Staff Roles
+                { email: 'teacher@school.in', password: 'teacher2026@', name: 'Teacher Manager', role: 'TeacherManager' },
+                { email: 'student@school.in', password: 'student2026@', name: 'Student Manager', role: 'StudentManager' },
+                { email: 'fee@school.in', password: 'fee2026@', name: 'Fee Manager', role: 'FeeManager' },
+                { email: 'inventory@school.in', password: 'inventory2026@', name: 'Inventory Manager', role: 'InventoryManager' }
             ];
 
             setTimeout(() => {
@@ -160,6 +166,15 @@ export const authAPI = {
                 );
 
                 if (user) {
+                    // Check if user is logging in through the correct tab
+                    const isAdminTab = credentials.loginType === 'admin';
+                    const isUserAdmin = user.role === 'Administrator';
+
+                    if ((isAdminTab && !isUserAdmin) || (!isAdminTab && isUserAdmin)) {
+                        reject({ response: { data: { message: 'Invalid credentials for this login type' } } });
+                        return;
+                    }
+
                     resolve({
                         data: {
                             token: 'mock-jwt-token-' + Date.now(),
@@ -167,7 +182,7 @@ export const authAPI = {
                                 id: adminCredentials.indexOf(user) + 1,
                                 name: user.name,
                                 email: user.email,
-                                role: 'Administrator',
+                                role: user.role,
                             },
                         },
                     });

@@ -5,12 +5,14 @@ import { loginStart, loginSuccess, loginFailure } from '../features/auth/authSli
 import { authAPI } from '../services/api';
 import loginImg from '../assets/login.png';
 import logoImg from '../assets/logo.png';
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 
 const Login = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { loading, error } = useSelector((state) => state.auth);
     const [role, setRole] = useState('admin');
+    const [showPassword, setShowPassword] = useState(false);
 
     const [formData, setFormData] = useState({
         email: '',
@@ -28,7 +30,7 @@ const Login = () => {
         e.preventDefault();
         dispatch(loginStart());
         try {
-            const response = await authAPI.login(formData);
+            const response = await authAPI.login({ ...formData, loginType: role });
             dispatch(loginSuccess(response.data));
             navigate('/dashboard');
         } catch (err) {
@@ -90,16 +92,24 @@ const Login = () => {
                         {/* Password Input */}
                         <div>
                             <label className="block text-sm font-bold text-gray-700 mb-2">Password</label>
-                            <input
-                                type="password"
-                                name="password"
-                                value={formData.password}
-                                onChange={handleChange}
-                                placeholder="Enter your password"
-                                required
-                                className="w-full px-5 py-4 bg-[#f3f4f6] border-none rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#0047AB] transition-all"
-                            />
-
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    placeholder="Enter your password"
+                                    required
+                                    className="w-full px-5 py-4 bg-[#f3f4f6] border-none rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-[#0047AB] transition-all"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#0047AB] transition-all"
+                                >
+                                    {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                                </button>
+                            </div>
                         </div>
 
                         {/* Error Message */}
