@@ -146,17 +146,27 @@ export const studentAPI = {
 // Auth API
 export const authAPI = {
     login: (credentials) => {
-        // Mock login - replace with real API
+        // Mock login - updated with user specific admin credentials
         return new Promise((resolve, reject) => {
+            const adminCredentials = [
+                { email: 'admin@school.in', password: 'admin2026@', name: 'Primary Admin' },
+                { email: 'xan@admin.in', password: 'xan2026@', name: 'Xan Admin' },
+                { email: 'xan@school.in', password: 'XAN2026', name: 'Xan School Admin' }
+            ];
+
             setTimeout(() => {
-                if (credentials.email === 'admin@school.com' && credentials.password === 'admin2026@') {
+                const user = adminCredentials.find(
+                    c => c.email === credentials.email && c.password === credentials.password
+                );
+
+                if (user) {
                     resolve({
                         data: {
                             token: 'mock-jwt-token-' + Date.now(),
                             user: {
-                                id: 1,
-                                name: 'Admin User',
-                                email: 'admin@school.com',
+                                id: adminCredentials.indexOf(user) + 1,
+                                name: user.name,
+                                email: user.email,
                                 role: 'Administrator',
                             },
                         },

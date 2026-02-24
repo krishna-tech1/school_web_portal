@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FiBell, FiSearch, FiUser, FiLogOut, FiSettings, FiMenu, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
-import { FaGraduationCap } from 'react-icons/fa';
 import { useNavigate, useLocation } from 'react-router-dom';
+import Logo from '../../assets/logo.png';
 
 const Navbar = ({ onMenuClick, isMobileOpen, isCollapsed, setIsCollapsed }) => {
     const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -49,8 +49,8 @@ const Navbar = ({ onMenuClick, isMobileOpen, isCollapsed, setIsCollapsed }) => {
 
                     {/* Branding */}
                     <div className="flex items-center gap-4">
-                        <div className="hidden sm:flex w-10 h-10 bg-[#FFD700] rounded-xl items-center justify-center shadow-[0_0_20px_rgba(255,215,0,0.3)] ring-2 ring-white/20">
-                            <FaGraduationCap className="text-[#0047AB] text-xl" />
+                        <div className="hidden sm:flex w-12 h-12 bg-white rounded-xl items-center justify-center shadow-lg ring-2 ring-white/20 p-1">
+                            <img src={Logo} alt="School Logo" className="w-full h-full object-contain" />
                         </div>
                         <div className="flex flex-col">
                             <h1 className="text-[13px] md:text-sm font-black tracking-[0.15em] leading-none uppercase text-white/90">X'AN MATRICULATION SCHOOL</h1>
