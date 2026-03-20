@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { NavLink } from 'react-router-dom';
-import { FiGrid, FiCheckSquare, FiCreditCard, FiBox, FiFileText, FiSettings, FiX } from 'react-icons/fi';
+import { FiGrid, FiCheckSquare, FiCreditCard, FiBox, FiFileText, FiX } from 'react-icons/fi';
 import { FaGraduationCap, FaChalkboardTeacher } from 'react-icons/fa';
 import { GoTriangleDown } from 'react-icons/go';
 
@@ -63,7 +63,6 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen, collapsed }) => {
         },
         { path: '/inventory', icon: FiBox, label: 'Inventory', hasSub: true, roles: ['Administrator', 'InventoryManager'] },
         { path: '/reports', icon: FiFileText, label: 'Reports', hasSub: false, roles: ['Administrator'] },
-        { path: '/settings', icon: FiSettings, label: 'Settings', hasSub: false, roles: ['Administrator'] },
     ];
 
     const menuItems = allMenuItems

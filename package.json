@@ -3,12 +3,13 @@
     "version": "1.0.0",
     "description": "School Web Portal - Full Stack Application",
     "scripts": {
-        "dev": "cd frontend && npm run dev",
+        "dev": "concurrently \"cd frontend && npm run dev\" \"cd server && npm run dev\"",
         "build": "cd frontend && npm run build",
         "preview": "cd frontend && npm run preview",
         "install-frontend": "cd frontend && npm install",
-        "install-backend": "cd server && pip install -r requirements.txt",
-        "install-all": "npm run install-frontend && npm run install-backend"
+        "install-backend": "cd server && npm install",
+        "install-all": "npm run install-frontend && npm run install-backend",
+        "start-backend": "cd server && npm start"
     },
     "keywords": [
         "school",
@@ -16,5 +17,8 @@
         "education"
     ],
     "author": "",
-    "license": "ISC"
+    "license": "ISC",
+    "devDependencies": {
+        "concurrently": "^9.2.1"
+    }
 }

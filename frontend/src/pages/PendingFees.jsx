@@ -131,9 +131,9 @@ const PendingFees = () => {
                         <div className="relative flex-1 group/drop" onClick={(e) => e.stopPropagation()}>
                             <button
                                 onClick={() => setIsStatusOpen(!isStatusOpen)}
-                                className="w-full bg-[#0047AB] hover:bg-[#003580] text-white px-8 py-4.5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest flex items-center justify-between min-w-[180px] shadow-lg shadow-blue-200/50 transition-all hover:-translate-y-1 active:scale-95"
+                                className="flex items-center justify-between gap-8 bg-[#0047AB] text-white px-6 py-3 rounded-xl font-bold text-sm min-w-[160px] shadow-md hover:bg-[#003580] transition-all"
                             >
-                                {selectedStatus} <FiChevronDown className={`ml-4 transition-transform duration-500 ${isStatusOpen ? 'rotate-180' : ''}`} size={18} />
+                                {selectedStatus} <FiChevronDown className={`transition-transform duration-300 ${isStatusOpen ? 'rotate-180' : ''}`} size={18} />
                             </button>
                             {isStatusOpen && (
                                 <div className="absolute top-[calc(100%+12px)] right-0 w-full bg-white rounded-2xl shadow-2xl z-50 py-3 border border-slate-100 animate-in fade-in slide-in-from-top-4 duration-300 ring-1 ring-black/5">
@@ -143,7 +143,7 @@ const PendingFees = () => {
                                 </div>
                             )}
                         </div>
-                        <button className="flex-1 bg-slate-900 hover:bg-black text-white px-8 py-4.5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all hover:-translate-y-1 active:scale-95 shadow-xl shadow-slate-200/50 whitespace-nowrap leading-none">
+                        <button className="flex items-center justify-center gap-3 bg-[#0047AB] text-white px-6 py-3 rounded-xl font-bold text-sm min-w-[160px] shadow-md hover:bg-[#003580] transition-all">
                             <FiBell size={18} /> Send Reminder All
                         </button>
                     </div>

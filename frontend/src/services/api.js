@@ -36,179 +36,53 @@ apiClient.interceptors.response.use(
     }
 );
 
-// Mock data for development
-const mockStudents = [
-    {
-        id: 1,
-        studentId: 'STU001',
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@example.com',
-        phone: '1234567890',
-        class: '10th Grade',
-        section: 'A',
-        dateOfBirth: '2008-05-15',
-        gender: 'Male',
-        address: '123 Main St, City',
-        guardianName: 'Jane Doe',
-        guardianPhone: '0987654321',
-        status: 'Active',
-        admissionDate: '2020-04-01',
-    },
-    {
-        id: 2,
-        studentId: 'STU002',
-        firstName: 'Alice',
-        lastName: 'Smith',
-        email: 'alice.smith@example.com',
-        phone: '2345678901',
-        class: '9th Grade',
-        section: 'B',
-        dateOfBirth: '2009-08-22',
-        gender: 'Female',
-        address: '456 Oak Ave, Town',
-        guardianName: 'Bob Smith',
-        guardianPhone: '1234509876',
-        status: 'Active',
-        admissionDate: '2021-04-01',
-    },
-    {
-        id: 3,
-        studentId: 'STU003',
-        firstName: 'Michael',
-        lastName: 'Johnson',
-        email: 'michael.j@example.com',
-        phone: '3456789012',
-        class: '10th Grade',
-        section: 'A',
-        dateOfBirth: '2008-11-30',
-        gender: 'Male',
-        address: '789 Pine Rd, Village',
-        guardianName: 'Sarah Johnson',
-        guardianPhone: '5678901234',
-        status: 'Active',
-        admissionDate: '2020-04-01',
-    },
-];
+// Dashboard Stats
+export const dashboardAPI = {
+    getStats: () => apiClient.get('dashboard/stats'),
+};
 
 // Student API
 export const studentAPI = {
-    getAll: () => {
-        // Mock API call - replace with real API
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve({ data: mockStudents });
-            }, 500);
-        });
-    },
-
-    getById: (id) => {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                const student = mockStudents.find(s => s.id === parseInt(id));
-                resolve({ data: student });
-            }, 300);
-        });
-    },
-
-    create: (data) => {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                const newStudent = {
-                    id: mockStudents.length + 1,
-                    studentId: `STU${String(mockStudents.length + 1).padStart(3, '0')}`,
-                    ...data,
-                    status: 'Active',
-                    admissionDate: new Date().toISOString().split('T')[0],
-                };
-                resolve({ data: newStudent });
-            }, 500);
-        });
-    },
-
-    update: (id, data) => {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve({ data: { id, ...data } });
-            }, 500);
-        });
-    },
-
-    delete: (id) => {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve({ data: { success: true } });
-            }, 300);
-        });
-    },
+    getAll: () => apiClient.get('students'),
+    getById: (id) => apiClient.get(`students/${id}`),
+    create: (data) => apiClient.post('students', data),
+    update: (id, data) => apiClient.put(`students/${id}`, data),
+    delete: (id) => apiClient.delete(`students/${id}`),
+    promote: (studentIds) => apiClient.post('students/promote', { studentIds }),
+    uploadPhoto: (formData) => apiClient.post('students/upload', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    }),
 };
 
 // Auth API
 export const authAPI = {
     login: (credentials) => {
-        // Mock login - updated with user specific admin credentials
-        return new Promise((resolve, reject) => {
-            const adminCredentials = [
-                // Admins
-                { email: 'admin@school.in', password: 'admin2026@', name: 'Primary Admin', role: 'Administrator' },
-                { email: 'xan@admin.in', password: 'xan2026@', name: 'Xan Admin', role: 'Administrator' },
-                { email: 'xan@school.in', password: 'XAN2026', name: 'Xan School Admin', role: 'Administrator' },
-                // Office Staff Roles
-                { email: 'teacher@school.in', password: 'teacher2026@', name: 'Teacher Manager', role: 'TeacherManager' },
-                { email: 'student@school.in', password: 'student2026@', name: 'Student Manager', role: 'StudentManager' },
-                { email: 'fee@school.in', password: 'fee2026@', name: 'Fee Manager', role: 'FeeManager' },
-                { email: 'inventory@school.in', password: 'inventory2026@', name: 'Inventory Manager', role: 'InventoryManager' }
-            ];
-
-            setTimeout(() => {
-                const user = adminCredentials.find(
-                    c => c.email === credentials.email && c.password === credentials.password
-                );
-
-                if (user) {
-                    // Check if user is logging in through the correct tab
-                    const isAdminTab = credentials.loginType === 'admin';
-                    const isUserAdmin = user.role === 'Administrator';
-
-                    if ((isAdminTab && !isUserAdmin) || (!isAdminTab && isUserAdmin)) {
-                        reject({ response: { data: { message: 'Invalid credentials for this login type' } } });
-                        return;
-                    }
-
-                    resolve({
-                        data: {
-                            token: 'mock-jwt-token-' + Date.now(),
-                            user: {
-                                id: adminCredentials.indexOf(user) + 1,
-                                name: user.name,
-                                email: user.email,
-                                role: user.role,
-                            },
-                        },
-                    });
-                } else {
-                    reject({ response: { data: { message: 'Invalid credentials' } } });
-                }
-            }, 800);
-        });
+        return apiClient.post('auth/login', credentials);
     },
 
     logout: () => {
-        return apiClient.post('/auth/logout');
+        return apiClient.post('auth/logout');
     },
 
     getCurrentUser: () => {
-        return apiClient.get('/auth/me');
+        return apiClient.get('auth/me');
     },
 };
 
 // Staff API
 export const staffAPI = {
-    getAll: () => apiClient.get('/staff'),
-    getById: (id) => apiClient.get(`/staff/${id}`),
-    create: (data) => apiClient.post('/staff', data),
-    update: (id, data) => apiClient.put(`/staff/${id}`, data),
-    delete: (id) => apiClient.delete(`/staff/${id}`),
+    getAll: () => apiClient.get('staff'),
+    getById: (id) => apiClient.get(`staff/${id}`),
+    create: (data) => apiClient.post('staff', data),
+    update: (id, data) => apiClient.put(`staff/${id}`, data),
+    delete: (id) => apiClient.delete(`staff/${id}`),
+    uploadPhoto: (formData) => apiClient.post('staff/upload', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    }),
 };
 
 // Attendance API
@@ -221,18 +95,16 @@ export const attendanceAPI = {
 // Fee API
 export const feeAPI = {
     getAll: () => apiClient.get('/fees'),
-    getById: (id) => apiClient.get(`/fees/${id}`),
     create: (data) => apiClient.post('/fees', data),
-    update: (id, data) => apiClient.put(`/fees/${id}`, data),
-    recordPayment: (data) => apiClient.post('/fees/payment', data),
+    save: (data) => apiClient.post('/fees', data), // Using the upsert endpoint
+    saveBulk: (data) => apiClient.post('/fees/bulk', data),
+    delete: (className, feeName) => apiClient.delete(`/fees?className=${className}${feeName ? `&feeName=${feeName}` : ''}`),
 };
 
 // Inventory API
 export const inventoryAPI = {
     getAll: () => apiClient.get('/inventory'),
-    getById: (id) => apiClient.get(`/inventory/${id}`),
-    create: (data) => apiClient.post('/inventory', data),
-    update: (id, data) => apiClient.put(`/inventory/${id}`, data),
+    save: (data) => apiClient.post('/inventory', data),
     delete: (id) => apiClient.delete(`/inventory/${id}`),
 };
 

@@ -13,7 +13,16 @@ import {
     Legend
 } from 'recharts';
 
+import { dashboardAPI } from '../services/api';
+
 const RupeesIcon = () => <span className="font-black text-2xl">₹</span>;
+
+const formatCurrency = (amount) => {
+    if (amount >= 100000) {
+        return `₹${(amount / 100000).toFixed(2)}L`;
+    }
+    return `₹${amount.toLocaleString()}`;
+};
 
 const chartData = [
     { name: 'Jan', present: 180, absent: 400 },
@@ -51,34 +60,57 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 const Dashboard = () => {
+    const [statsData, setStatsData] = React.useState({
+        totalStudents: 0,
+        totalStaff: 0,
+        totalPendingFees: 0,
+        newStudentsThisMonth: 0,
+        lowStockCount: 0
+    });
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const res = await dashboardAPI.getStats();
+                setStatsData(res.data);
+            } catch (err) {
+                console.error('Failed to fetch stats:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchStats();
+    }, []);
+
     const stats = [
         {
             title: 'Total Students',
-            value: '8,500',
+            value: statsData.totalStudents.toLocaleString(),
             icon: FaGraduationCap,
             color: 'emerald',
             trend: '+12%',
             trendUp: true,
-            description: '42 new this month',
+            description: `${statsData.newStudentsThisMonth} new this month`,
             gradient: 'from-emerald-500 to-teal-600',
             iconBg: 'bg-emerald-500/10',
             iconColor: 'text-emerald-600'
         },
         {
             title: 'Total Staff',
-            value: '87',
+            value: statsData.totalStaff,
             icon: FiUsers,
             color: 'fuchsia',
             trend: '+2',
             trendUp: true,
-            description: '1 on leave today',
+            description: 'Field staff included',
             gradient: 'from-fuchsia-500 to-purple-600',
             iconBg: 'bg-fuchsia-500/10',
             iconColor: 'text-fuchsia-600'
         },
         {
             title: 'Pending Fees',
-            value: '₹2.45L',
+            value: formatCurrency(statsData.totalPendingFees),
             icon: RupeesIcon,
             color: 'amber',
             trend: '-15%',
@@ -90,10 +122,10 @@ const Dashboard = () => {
         },
         {
             title: 'Low stock',
-            value: '12',
+            value: statsData.lowStockCount || '0',
             icon: FiPackage,
             color: 'rose',
-            trend: 'High',
+            trend: '-',
             trendUp: false,
             description: 'Items need refill',
             gradient: 'from-rose-500 to-red-600',

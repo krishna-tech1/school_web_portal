@@ -1,36 +1,58 @@
 # Dependencies
 node_modules/
-frontend/node_modules/
-server/node_modules/
+**/node_modules/
 
 # Production build
 dist/
-frontend/dist/
+**/dist/
 build/
+**/build/
 
 # Environment variables
 .env
-frontend/.env
-server/.env
+**/.env
 *.env.local
 *.env.development.local
 *.env.test.local
 *.env.production.local
 
-# IDEs and editors
+# AI Metadata & IDEs
+.gemini/
+.agents/
+.agent/
+_agents/
+_agent/
+brain/
+knowledge/
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# System files
+# Project specific artifacts
+.zencoder/
+.zenflow/
+
+# Logs and Debug
+*.log
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+
+# Debug scripts and outputs
+test_*.js
+**/test_*.js
+inspect_*.js
+**/inspect_*.js
+out_*.txt
+**/out_*.txt
+*.txt
+!README.md
+
+# OS files
 .DS_Store
 Thumbs.db
 
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 # Startup Scripts
 start.bat
 start.ps1

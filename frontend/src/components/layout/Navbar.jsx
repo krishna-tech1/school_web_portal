@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { FiBell, FiSearch, FiUser, FiLogOut, FiSettings, FiMenu, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiSearch, FiUser, FiLogOut, FiMenu, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Logo from '../../assets/logo.png';
 
@@ -63,12 +63,6 @@ const Navbar = ({ onMenuClick, isMobileOpen, isCollapsed, setIsCollapsed }) => {
 
                 {/* Right Section */}
                 <div className="flex items-center gap-3 md:gap-6">
-                    {/* Notifications */}
-                    <button className="hidden sm:block relative p-2.5 hover:bg-white/10 rounded-full transition-all group">
-                        <FiBell className="h-5 w-5" />
-                        <span className="absolute top-2.5 right-2.5 h-2 w-2 bg-red-500 border-2 border-[#0047AB] rounded-full"></span>
-                    </button>
-
                     {/* Profile Dropdown */}
                     <div className="relative">
                         <button
@@ -95,14 +89,6 @@ const Navbar = ({ onMenuClick, isMobileOpen, isCollapsed, setIsCollapsed }) => {
                                     <p className="text-sm font-bold text-slate-900">{user?.name || 'User Profile'}</p>
                                     <p className="text-xs text-slate-500">{user?.email || 'user@school.in'}</p>
                                 </div>
-                                <button
-                                    onClick={() => { navigate('/settings'); setShowProfileMenu(false); }}
-                                    className="w-full flex items-center gap-3 px-4 py-3 text-[14px] font-bold text-slate-600 hover:bg-slate-50 transition-colors"
-                                >
-                                    <FiSettings className="h-4 w-4" />
-                                    Account Settings
-                                </button>
-                                <div className="h-[1px] bg-slate-50 my-1"></div>
                                 <button
                                     onClick={handleLogout}
                                     className="w-full flex items-center gap-3 px-4 py-3 text-[14px] font-bold text-red-500 hover:bg-red-50 transition-colors"

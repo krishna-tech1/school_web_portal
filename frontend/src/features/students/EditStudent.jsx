@@ -1,27 +1,31 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FiUploadCloud, FiChevronDown, FiPlus, FiArrowLeft, FiCamera, FiUser } from 'react-icons/fi';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { FiChevronDown, FiSave, FiArrowLeft, FiLoader, FiCamera, FiUser } from 'react-icons/fi';
 import { Card } from '../../components/ui';
 import { studentAPI } from '../../services/api';
 
-const AddStudent = () => {
+const EditStudent = () => {
+    const { id } = useParams();
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
     
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
-        dob: '',
+        dateOfBirth: '',
         gender: '',
         address: '',
         class: '',
         section: '',
         rollNumber: '',
-        parentName: '',
+        guardianName: '',
         relation: '',
-        phoneNumber: '',
+        guardianPhone: '',
         email: '',
+        feeStatus: 'Pending',
+        pendingFee: 0,
         photo_url: ''
     });
     const [uploading, setUploading] = useState(false);
@@ -48,17 +52,37 @@ const AddStudent = () => {
         }
     };
 
+    useEffect(() => {
+        const fetchStudent = async () => {
+            try {
+                const res = await studentAPI.getById(id);
+                const data = res.data;
+                // Format date for input[type="date"]
+                if (data.dateOfBirth) {
+                    data.dateOfBirth = new Date(data.dateOfBirth).toISOString().split('T')[0];
+                }
+                setFormData(data);
+            } catch (err) {
+                console.error('Failed to fetch student:', err);
+                setError('Could not load student data.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchStudent();
+    }, [id]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         // Phone number restriction (only numbers)
-        if (name === 'phoneNumber' && !/^\d*$/.test(value)) {
+        if (name === 'guardianPhone' && !/^\d*$/.test(value)) {
             return;
         }
         setFormData({ ...formData, [name]: value });
     };
 
     const handleSave = async () => {
-        const mandatoryFields = ['firstName', 'lastName', 'dob', 'gender', 'class', 'section', 'rollNumber', 'parentName', 'relation', 'phoneNumber', 'email', 'photo_url'];
+        const mandatoryFields = ['firstName', 'lastName', 'dateOfBirth', 'gender', 'class', 'section', 'rollNumber', 'guardianName', 'relation', 'guardianPhone', 'email', 'photo_url'];
         const missing = mandatoryFields.filter(f => !formData[f]);
 
         if (missing.length > 0) {
@@ -70,15 +94,24 @@ const AddStudent = () => {
         setSubmitting(true);
         setError('');
         try {
-            await studentAPI.create(formData);
-            navigate('/students');
+            await studentAPI.update(id, formData);
+            navigate(`/students/${id}`);
         } catch (err) {
             console.error(err);
-            setError('Failed to save student. Please try again.');
+            setError('Failed to update student. Please try again.');
         } finally {
             setSubmitting(false);
         }
     };
+
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+                <FiLoader className="text-[#0047AB] animate-spin" size={40} />
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Loading form...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="p-8 bg-[#F8FAFC] min-h-screen animate-in fade-in duration-500">
@@ -86,20 +119,20 @@ const AddStudent = () => {
             <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900 mb-1 flex items-center gap-3">
-                        <FiPlus className="text-[#0047AB]" /> Add New Student
+                        <FiSave className="text-[#0047AB]" /> Edit Student Record
                     </h1>
-                    <p className="text-slate-500 font-medium">Fill out the student admission form</p>
+                    <p className="text-slate-500 font-medium">Updating profile for {formData.studentId}</p>
                 </div>
                 <button
-                    onClick={() => navigate('/students')}
+                    onClick={() => navigate(-1)}
                     className="flex items-center gap-2 text-slate-500 hover:text-[#0047AB] font-bold transition-colors"
                 >
-                    <FiArrowLeft /> Back to Students
+                    <FiArrowLeft /> Back
                 </button>
             </div>
 
             {error && (
-                <div className="mb-6 p-4 bg-rose-50 border-l-4 border-rose-500 text-rose-700 font-bold rounded-xl animate-in shake duration-500">
+                <div className="mb-6 p-4 bg-rose-50 border-l-4 border-rose-500 text-rose-700 font-bold rounded-xl">
                     {error}
                 </div>
             )}
@@ -150,40 +183,38 @@ const AddStudent = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
                                 <div>
                                     <label className="block text-sm font-bold text-slate-500 mb-3 uppercase tracking-widest flex justify-between items-center">
-                                        First Name <span className="text-rose-500">*</span>
+                                        First Name
                                         <span className="text-[10px] lowercase font-medium opacity-60">Max 32</span>
                                     </label>
-                                        <input
-                                            type="text"
-                                            name="firstName"
-                                            value={formData.firstName}
-                                            onChange={handleChange}
-                                            maxLength={32}
-                                            placeholder="Enter first name"
-                                            className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.25rem] text-slate-900 font-bold placeholder-slate-400 focus:border-[#0047AB] focus:bg-white transition-all outline-none shadow-sm"
-                                        />
+                                    <input
+                                        type="text"
+                                        name="firstName"
+                                        value={formData.firstName}
+                                        onChange={handleChange}
+                                        maxLength={32}
+                                        className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.25rem] text-slate-900 font-bold placeholder-slate-400 focus:border-[#0047AB] focus:bg-white transition-all outline-none shadow-sm"
+                                    />
                                 </div>
                         <div>
                             <label className="block text-sm font-bold text-slate-500 mb-3 uppercase tracking-widest flex justify-between items-center">
                                 Last Name <span className="text-rose-500">*</span>
                                 <span className="text-[10px] lowercase font-medium opacity-60">Max 32</span>
                             </label>
-                                <input
-                                    type="text"
-                                    name="lastName"
-                                    value={formData.lastName}
-                                    onChange={handleChange}
-                                    maxLength={32}
-                                    placeholder="Enter last name"
-                                    className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.25rem] text-slate-900 font-bold placeholder-slate-400 focus:border-[#0047AB] focus:bg-white transition-all outline-none shadow-sm"
-                                />
+                            <input
+                                type="text"
+                                name="lastName"
+                                value={formData.lastName}
+                                onChange={handleChange}
+                                maxLength={32}
+                                className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.25rem] text-slate-900 font-bold placeholder-slate-400 focus:border-[#0047AB] focus:bg-white transition-all outline-none shadow-sm"
+                            />
                         </div>
                         <div>
                             <label className="block text-sm font-bold text-slate-500 mb-3 uppercase tracking-widest">Date of Birth <span className="text-rose-500">*</span></label>
                             <input
                                 type="date"
-                                name="dob"
-                                value={formData.dob}
+                                name="dateOfBirth"
+                                value={formData.dateOfBirth}
                                 onChange={handleChange}
                                 className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.25rem] text-slate-900 font-bold appearance-none focus:border-[#0047AB] focus:bg-white transition-all outline-none shadow-sm"
                             />
@@ -198,9 +229,9 @@ const AddStudent = () => {
                                     className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.25rem] text-slate-900 font-bold appearance-none focus:border-[#0047AB] focus:bg-white transition-all outline-none shadow-sm"
                                 >
                                     <option value="">Select gender</option>
-                                    <option value="male">Male</option>
-                                    <option value="female">Female</option>
-                                    <option value="other">Other</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
                                 </select>
                                 <FiChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
                             </div>
@@ -215,21 +246,20 @@ const AddStudent = () => {
                                     value={formData.address}
                                     onChange={handleChange}
                                     maxLength={350}
-                                    placeholder="Enter full address"
                                     rows="3"
                                     className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.25rem] text-slate-900 font-bold placeholder-slate-400 focus:border-[#0047AB] focus:bg-white transition-all outline-none shadow-sm resize-none"
                                 ></textarea>
-                        </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </Card>
 
-                {/* Class & Section Allocation Section */}
+                {/* Academic Information */}
                 <Card className="border-none shadow-[0_4px_25px_rgba(0,0,0,0.05)] rounded-[2.5rem] p-8 md:p-12 bg-white">
                     <h2 className="text-xl font-black text-slate-900 mb-10 flex items-center gap-4">
                         <span className="w-2 h-8 bg-[#0047AB] rounded-full"></span>
-                        Academic Allocation
+                        Academic Details
                     </h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -242,7 +272,6 @@ const AddStudent = () => {
                                     onChange={handleChange}
                                     className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.25rem] text-slate-900 font-bold appearance-none focus:border-[#0047AB] focus:bg-white transition-all outline-none shadow-sm"
                                 >
-                                    <option value="">Select class</option>
                                     {classes.map(c => <option key={c} value={c}>{c}</option>)}
                                 </select>
                                 <FiChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
@@ -257,7 +286,6 @@ const AddStudent = () => {
                                     onChange={handleChange}
                                     className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.25rem] text-slate-900 font-bold appearance-none focus:border-[#0047AB] focus:bg-white transition-all outline-none shadow-sm"
                                 >
-                                    <option value="">Select Section</option>
                                     {sections.map(s => <option key={s} value={s}>Section {s}</option>)}
                                 </select>
                                 <FiChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
@@ -268,20 +296,19 @@ const AddStudent = () => {
                                 Roll Number <span className="text-rose-500">*</span>
                                 <span className="text-[10px] lowercase font-medium opacity-60">Max 10</span>
                             </label>
-                                <input
-                                    type="text"
-                                    name="rollNumber"
-                                    value={formData.rollNumber}
-                                    onChange={handleChange}
-                                    maxLength={10}
-                                    placeholder="eg: 25"
-                                    className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.25rem] text-slate-900 font-bold placeholder-slate-400 focus:border-[#0047AB] focus:bg-white transition-all outline-none shadow-sm"
-                                />
+                            <input
+                                type="text"
+                                name="rollNumber"
+                                value={formData.rollNumber}
+                                onChange={handleChange}
+                                maxLength={10}
+                                className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.25rem] text-slate-900 font-bold placeholder-slate-400 focus:border-[#0047AB] focus:bg-white transition-all outline-none shadow-sm"
+                            />
                         </div>
                     </div>
                 </Card>
 
-                {/* Parent / Guardian Details Section */}
+                {/* Guardian Details */}
                 <Card className="border-none shadow-[0_4px_25px_rgba(0,0,0,0.05)] rounded-[2.5rem] p-8 md:p-12 bg-white">
                     <h2 className="text-xl font-black text-slate-900 mb-10 flex items-center gap-4">
                         <span className="w-2 h-8 bg-[#0047AB] rounded-full"></span>
@@ -294,15 +321,14 @@ const AddStudent = () => {
                                 Guardian Name <span className="text-rose-500">*</span>
                                 <span className="text-[10px] lowercase font-medium opacity-60">Max 100</span>
                             </label>
-                                <input
-                                    type="text"
-                                    name="parentName"
-                                    value={formData.parentName}
-                                    onChange={handleChange}
-                                    maxLength={100}
-                                    placeholder="Enter parent name"
-                                    className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.25rem] text-slate-900 font-bold placeholder-slate-400 focus:border-[#0047AB] focus:bg-white transition-all outline-none shadow-sm"
-                                />
+                            <input
+                                type="text"
+                                name="guardianName"
+                                value={formData.guardianName}
+                                onChange={handleChange}
+                                maxLength={100}
+                                className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.25rem] text-slate-900 font-bold placeholder-slate-400 focus:border-[#0047AB] focus:bg-white transition-all outline-none shadow-sm"
+                            />
                         </div>
                         <div>
                             <label className="block text-sm font-bold text-slate-500 mb-3 uppercase tracking-widest">Relation <span className="text-rose-500">*</span></label>
@@ -313,7 +339,6 @@ const AddStudent = () => {
                                     onChange={handleChange}
                                     className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.25rem] text-slate-900 font-bold appearance-none focus:border-[#0047AB] focus:bg-white transition-all outline-none shadow-sm"
                                 >
-                                    <option value="">Select Relation</option>
                                     <option value="Father">Father</option>
                                     <option value="Mother">Mother</option>
                                     <option value="Guardian">Guardian</option>
@@ -326,30 +351,28 @@ const AddStudent = () => {
                                 Phone Number <span className="text-rose-500">*</span>
                                 <span className="text-[10px] lowercase font-medium opacity-60">Max 15</span>
                             </label>
-                                <input
-                                    type="text"
-                                    name="phoneNumber"
-                                    value={formData.phoneNumber}
-                                    onChange={handleChange}
-                                    maxLength={15}
-                                    placeholder="Enter your phone number"
-                                    className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.25rem] text-slate-900 font-bold placeholder-slate-400 focus:border-[#0047AB] focus:bg-white transition-all outline-none shadow-sm"
-                                />
+                            <input
+                                type="text"
+                                name="guardianPhone"
+                                value={formData.guardianPhone}
+                                onChange={handleChange}
+                                maxLength={15}
+                                className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.25rem] text-slate-900 font-bold placeholder-slate-400 focus:border-[#0047AB] focus:bg-white transition-all outline-none shadow-sm"
+                            />
                         </div>
                         <div>
                             <label className="block text-sm font-bold text-slate-500 mb-3 uppercase tracking-widest flex justify-between items-center">
                                 Email <span className="text-rose-500">*</span>
                                 <span className="text-[10px] lowercase font-medium opacity-60">Max 50</span>
                             </label>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    maxLength={50}
-                                    placeholder="Enter your email"
-                                    className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.25rem] text-slate-900 font-bold placeholder-slate-400 focus:border-[#0047AB] focus:bg-white transition-all outline-none shadow-sm"
-                                />
+                            <input
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                maxLength={50}
+                                className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.25rem] text-slate-900 font-bold placeholder-slate-400 focus:border-[#0047AB] focus:bg-white transition-all outline-none shadow-sm"
+                            />
                         </div>
                     </div>
                 </Card>
@@ -361,10 +384,10 @@ const AddStudent = () => {
                         disabled={submitting}
                         className={`bg-[#0047AB] hover:bg-[#003580] text-white px-12 py-5 rounded-2xl font-black shadow-xl shadow-blue-100 transition-all active:scale-95 disabled:opacity-70 flex items-center gap-3`}
                     >
-                        {submitting ? 'Saving...' : 'Save Student Entry'}
+                        {submitting ? 'Updating...' : 'Save Changes'}
                     </button>
                     <button
-                        onClick={() => navigate('/students')}
+                        onClick={() => navigate(-1)}
                         className="bg-white border-2 border-slate-100 text-slate-500 hover:text-[#0047AB] hover:border-[#0047AB] px-10 py-5 rounded-2xl font-black transition-all"
                     >
                         Cancel
@@ -375,4 +398,4 @@ const AddStudent = () => {
     );
 };
 
-export default AddStudent;
+export default EditStudent;

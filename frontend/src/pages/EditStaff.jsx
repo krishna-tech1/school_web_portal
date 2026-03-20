@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FiSave, FiX, FiPlus, FiUpload, FiUser, FiMail, FiPhone, FiCalendar, FiMapPin, FiBriefcase, FiLoader } from 'react-icons/fi';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { FiSave, FiPlus, FiX, FiUpload, FiUser, FiMail, FiPhone, FiCalendar, FiMapPin, FiBriefcase, FiLoader } from 'react-icons/fi';
 import { Card } from '../components/ui';
 import { staffAPI } from '../services/api';
 
-const AddStaff = () => {
+const EditStaff = () => {
+    const { id } = useParams();
     const navigate = useNavigate();
     const [submitting, setSubmitting] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [formData, setFormData] = useState({
         firstName: '',
@@ -20,12 +22,51 @@ const AddStaff = () => {
         state: '',
         zipCode: '',
         employeeId: '',
-        staffType: 'Teaching',
+        staffType: '',
         classTeacher: 'NONE',
-        subjects: [{ class: '', subject: '' }],
+        subjects: [''],
         photo_url: ''
     });
     const [uploading, setUploading] = useState(false);
+
+    useEffect(() => {
+        const fetchStaff = async () => {
+            try {
+                setLoading(true);
+                const response = await staffAPI.getById(id);
+                // Ensure no null values for controlled inputs
+                const cleanedData = {};
+                Object.keys(response.data).forEach(key => {
+                    cleanedData[key] = response.data[key] === null ? '' : response.data[key];
+                });
+                
+                // Format dates for input fields (YYYY-MM-DD)
+                if (cleanedData.dob) cleanedData.dob = cleanedData.dob.split('T')[0];
+
+                // Parse subjects
+                if (cleanedData.subjects) {
+                    try {
+                        cleanedData.subjects = JSON.parse(cleanedData.subjects);
+                        if (!Array.isArray(cleanedData.subjects)) throw new Error();
+                    } catch (e) {
+                        // Fallback for old comma-separated strings
+                        cleanedData.subjects = cleanedData.subjects.split(',').filter(Boolean).map(s => ({ class: '', subject: s }));
+                    }
+                } else {
+                    cleanedData.subjects = [{ class: '', subject: '' }];
+                }
+
+                setFormData(prev => ({ ...prev, ...cleanedData }));
+                setError('');
+            } catch (err) {
+                console.error('Fetch staff error:', err);
+                setError('Failed to load staff details.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchStaff();
+    }, [id]);
 
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
@@ -96,13 +137,14 @@ const AddStaff = () => {
         const validSubjects = formData.subjects.filter(s => (s.class && s.subject));
         
         // Ensure at least one subject entry
-        if (validSubjects.length === 0) {
-            setError('Please add at least one subject with its class.');
+        // Ensure at least one subject entry if staffType is Teaching
+        if (formData.staffType === 'Teaching' && validSubjects.length === 0) {
+            setError('Please add at least one subject with its class for teaching staff.');
             window.scrollTo(0, 0);
             return;
         }
 
-        // Check for internal duplicate subjects (same class and subject)
+        // Check for internal duplicate subjects
         const subjSet = new Set();
         for (const s of validSubjects) {
             const key = `${s.class}-${s.subject}`.toLowerCase().trim();
@@ -121,41 +163,43 @@ const AddStaff = () => {
         }
 
         try {
-            setSubmitting(true); // Changed setLoading to setSubmitting to match existing state
+            setSubmitting(true);
             setError('');
-            
-            // Convert subjects to formatted string or JSON before sending
-            const subjectsToSend = JSON.stringify(validSubjects);
             
             const staffData = {
                 ...formData,
-                subjects: subjectsToSend
+                subjects: JSON.stringify(validSubjects)
             };
 
-            await staffAPI.create(staffData);
+            await staffAPI.update(id, staffData);
             navigate('/staff');
         } catch (err) {
-            console.error('Submit staff error:', err);
-            setError(err.response?.data?.message || 'Failed to add staff member. Please try again.');
+            console.error('Update staff error:', err);
+            setError(err.response?.data?.message || 'Failed to update staff member.');
             window.scrollTo(0, 0);
         } finally {
-            setSubmitting(false); // Changed setLoading to setSubmitting to match existing state
+            setSubmitting(false);
         }
     };
 
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-[#FBFBFE]">
+                <FiLoader className="text-[#0047AB] animate-spin" size={40} />
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Loading staff details...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="p-4 md:p-10 bg-[#FBFBFE] min-h-screen animate-in fade-in duration-1000">
-            {/* Breadcrumbs */}
-            <div className="flex items-center gap-2 mb-4 px-2">
-
-                <span className="text-[11px] font-black tracking-widest text-[#0047AB] uppercase">Add New Staff</span>
-            </div>
-
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-center md:items-start mb-10 gap-6 md:gap-0 px-2">
                 <div>
-                    <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight">Add New Staff Member</h1>
-                    <p className="text-slate-500 font-bold text-sm mt-2">Enter the details of the new staff member below.</p>
+                    <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight">Edit Staff Member</h1>
+                    <p className="text-[#0047AB] font-black text-[13px] uppercase tracking-widest mt-2">
+                        ID: {formData.staffId || formData.employeeId || id}
+                    </p>
                 </div>
                 <div className="flex gap-4 w-full md:w-auto">
                     <button
@@ -167,10 +211,11 @@ const AddStaff = () => {
                     </button>
                     <button
                         onClick={handleSubmit}
-                        className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-[#0047AB] hover:bg-[#003580] text-white px-8 py-3.5 rounded-xl font-black shadow-lg shadow-blue-200/50 transition-all hover:-translate-y-1 active:scale-95 text-xs uppercase tracking-widest"
+                        disabled={submitting}
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-[#0047AB] hover:bg-[#003580] text-white px-8 py-3.5 rounded-xl font-black shadow-lg shadow-blue-200/50 transition-all hover:-translate-y-1 active:scale-95 text-xs uppercase tracking-widest disabled:opacity-50"
                     >
                         <FiSave size={18} />
-                        Save Staff
+                        {submitting ? 'Updating...' : 'Update Staff'}
                     </button>
                 </div>
             </div>
@@ -232,7 +277,7 @@ const AddStaff = () => {
                         <div className="space-y-5">
                             <div>
                                 <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2 flex justify-between items-center">
-                                    <span>Employee ID</span>
+                                    Employee ID
                                     <span className="text-[9px] lowercase font-medium opacity-60">Max 20</span>
                                 </label>
                                 <input
@@ -249,7 +294,7 @@ const AddStaff = () => {
                                 <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Employee Type</label>
                                 <select
                                     name="staffType"
-                                    value={formData.staffType}
+                                    value={formData.staffType || 'Teaching'}
                                     onChange={handleChange}
                                     className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-50 rounded-xl text-sm font-bold focus:bg-white focus:border-[#0047AB]/20 focus:ring-4 focus:ring-[#0047AB]/5 transition-all outline-none text-slate-600 appearance-none cursor-pointer"
                                 >
@@ -265,7 +310,7 @@ const AddStaff = () => {
                                     onChange={handleChange}
                                     className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-50 rounded-xl text-sm font-bold focus:bg-white focus:border-[#0047AB]/20 focus:ring-4 focus:ring-[#0047AB]/5 transition-all outline-none text-slate-600 appearance-none cursor-pointer"
                                 >
-                                    <option value="NONE">NONE</option>
+                                    <option value="">None</option>
                                     <option value="LKG">LKG</option>
                                     <option value="UKG">UKG</option>
                                     {[...Array(12)].map((_, i) => (
@@ -293,7 +338,7 @@ const AddStaff = () => {
                                             onChange={(e) => handleSubjectChange(index, 'class', e.target.value)}
                                             className="w-1/3 px-4 py-3 bg-slate-50 border-2 border-slate-50 rounded-xl text-sm font-bold focus:bg-white focus:border-[#0047AB]/20 focus:ring-4 focus:ring-[#0047AB]/5 transition-all outline-none"
                                         >
-                                            <option value="NONE">NONE</option>
+                                            <option value="">Class</option>
                                             <option value="LKG">LKG</option>
                                             <option value="UKG">UKG</option>
                                             {[...Array(12)].map((_, i) => (
@@ -336,7 +381,7 @@ const AddStaff = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2 flex justify-between items-center">
-                                    <span>First Name <span className="text-rose-500">*</span></span>
+                                    First Name
                                     <span className="text-[9px] lowercase font-medium opacity-60">Max 32</span>
                                 </label>
                                 <input
@@ -350,7 +395,7 @@ const AddStaff = () => {
                             </div>
                             <div>
                                 <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2 flex justify-between items-center">
-                                    <span>Last Name <span className="text-rose-500">*</span></span>
+                                    Last Name
                                     <span className="text-[9px] lowercase font-medium opacity-60">Max 32</span>
                                 </label>
                                 <input
@@ -364,7 +409,7 @@ const AddStaff = () => {
                             </div>
                             <div>
                                 <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2 flex justify-between items-center">
-                                    <span>Email Address <span className="text-rose-500">*</span></span>
+                                    Email Address
                                     <span className="text-[9px] lowercase font-medium opacity-60">Max 50</span>
                                 </label>
                                 <div className="relative">
@@ -381,7 +426,7 @@ const AddStaff = () => {
                             </div>
                             <div>
                                 <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2 flex justify-between items-center">
-                                    <span>Phone Number <span className="text-rose-500">*</span></span>
+                                    Phone Number
                                     <span className="text-[9px] lowercase font-medium opacity-60">Max 15</span>
                                 </label>
                                 <div className="relative">
@@ -499,4 +544,4 @@ const AddStaff = () => {
     );
 };
 
-export default AddStaff;
+export default EditStaff;

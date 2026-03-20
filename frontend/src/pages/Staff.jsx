@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { staffAPI } from '../services/api';
 import { useNavigate } from 'react-router-dom';
-import { FiPlus, FiEye, FiSearch, FiChevronDown } from 'react-icons/fi';
+import { FiPlus, FiEye, FiSearch, FiChevronDown, FiEdit2, FiTrash2, FiUser } from 'react-icons/fi';
 import { Card, Table } from '../components/ui';
 
 const Staff = () => {
@@ -8,6 +9,9 @@ const Staff = () => {
     const [search, setSearch] = useState('');
     const [selectedType, setSelectedType] = useState('All Type');
     const [selectedDept, setSelectedDept] = useState('All Department');
+    const [staffData, setStaffData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
     // Dropdown states
     const [isTypeOpen, setIsTypeOpen] = useState(false);
@@ -23,24 +27,44 @@ const Staff = () => {
             setIsDeptOpen(false);
         };
         window.addEventListener('click', handleClickOutside);
+        fetchStaff();
         return () => window.removeEventListener('click', handleClickOutside);
     }, []);
 
-    const baseStaff = [
-        { staffId: 'STF001', name: 'Dr. Amitabh Bachchan', type: 'Non-Teaching', designation: 'Principal', department: 'Administration' },
-        { staffId: 'STF002', name: 'Mrs. Priya Sharma', type: 'Teaching', designation: 'Senior Teacher', department: 'Academic' },
-        { staffId: 'STF005', name: 'Mr. Robert D\'Souza', type: 'Teaching', designation: 'P.E. Coach', department: 'Physical Education' },
-        { staffId: 'STF009', name: 'Ms. Anita Roy', type: 'Teaching', designation: 'HOD - Mathematics', department: 'Mathematics' },
-        { staffId: 'STF012', name: 'Mr. Sahil Varma', type: 'Non-Teaching', designation: 'Lab Assistant', department: 'Science' },
-        { staffId: 'STF015', name: 'Mrs. Rekha G.', type: 'Teaching', designation: 'English Teacher', department: 'Academic' },
-        { staffId: 'STF018', name: 'Mr. Salman Khan', type: 'Non-Teaching', designation: 'Admin Officer', department: 'Administration' },
-    ];
+    const fetchStaff = async () => {
+        try {
+            setLoading(true);
+            const response = await staffAPI.getAll();
+            setStaffData(response.data);
+            setError('');
+        } catch (err) {
+            console.error('Fetch staff error:', err);
+            setError('Failed to load staff list.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDelete = async (id, name) => {
+        if (window.confirm(`Are you sure you want to delete ${name}?`)) {
+            try {
+                await staffAPI.delete(id);
+                setStaffData(prev => prev.filter(s => s.id !== id));
+            } catch (err) {
+                console.error('Delete error:', err);
+                alert('Failed to delete staff member.');
+            }
+        }
+    };
 
     // Filter Logic
-    const staffList = baseStaff.filter(staff => {
-        const matchesSearch = staff.name.toLowerCase().includes(search.toLowerCase()) ||
-            staff.staffId.toLowerCase().includes(search.toLowerCase());
-        const matchesType = selectedType === 'All Type' || staff.type === selectedType;
+    const staffList = staffData.filter(staff => {
+        const name = staff.name || `${staff.firstName} ${staff.lastName}`;
+        const sId = staff.staffId || staff.employeeId || '';
+        
+        const matchesSearch = name.toLowerCase().includes(search.toLowerCase()) ||
+            sId.toLowerCase().includes(search.toLowerCase());
+        const matchesType = selectedType === 'All Type' || staff.staff_type === selectedType;
         const matchesDept = selectedDept === 'All Department' || staff.department === selectedDept;
         return matchesSearch && matchesType && matchesDept;
     });
@@ -48,38 +72,79 @@ const Staff = () => {
     const columns = [
         {
             header: 'Staff ID',
-            accessor: 'staffId',
+            render: (row) => <span>{row.staffId || row.employeeId || row.id}</span>,
         },
         {
             header: 'Name',
-            accessor: 'name',
-            render: (row) => <span className="font-semibold text-slate-700">{row.name}</span>,
-        },
-        {
-            header: 'Type',
             render: (row) => (
-                <div className={`px-4 py-1.5 rounded-lg text-xs font-black text-center inline-block min-w-[100px] ${row.type === 'Teaching'
-                    ? 'bg-[#14b8a6] text-white'
-                    : 'bg-[#b45309] text-white'
-                    }`}>
-                    {row.type}
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden border-2 border-white shadow-sm ring-1 ring-slate-100">
+                        {row.photo_url ? (
+                            <img src={row.photo_url} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                            <FiUser className="text-slate-300" />
+                        )}
+                    </div>
+                    <span className="font-semibold text-slate-700">{row.name || `${row.firstName} ${row.lastName}`}</span>
                 </div>
             ),
         },
         {
-            header: 'Designation',
-            accessor: 'designation',
+            header: 'Type',
+            render: (row) => {
+                const type = row.staff_type || 'Teaching';
+                return (
+                    <div className={`px-4 py-1.5 rounded-lg text-xs font-black text-center inline-block min-w-[100px] ${type === 'Teaching'
+                        ? 'bg-[#14b8a6] text-white'
+                        : 'bg-[#b45309] text-white'
+                        }`}>
+                        {type}
+                    </div>
+                );
+            },
         },
         {
-            header: 'Department',
-            accessor: 'department',
+            header: 'Class Teacher',
+            render: (row) => <span>{row.class_teacher || 'None'}</span>,
+        },
+        {
+            header: 'Subjects',
+            render: (row) => {
+                try {
+                    const subjects = JSON.parse(row.subjects || '[]');
+                    if (!Array.isArray(subjects)) throw new Error();
+                    return <span>{subjects.map(s => `${s.class || ''} ${s.subject || ''}`.trim()).filter(Boolean).join(', ') || '—'}</span>;
+                } catch (e) {
+                    return <span>{row.subjects || '—'}</span>;
+                }
+            },
         },
         {
             header: 'Actions',
             render: (row) => (
-                <button className="p-1 hover:bg-slate-100 rounded-full transition-colors text-slate-500">
-                    <FiEye size={18} />
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => navigate(`/staff/${row.id}`)}
+                        className="p-2 hover:bg-blue-50 rounded-lg transition-colors text-slate-500 hover:text-[#0047AB]"
+                        title="View Profile"
+                    >
+                        <FiEye size={18} />
+                    </button>
+                    <button
+                        onClick={() => navigate(`/staff/edit/${row.id}`)}
+                        className="p-2 hover:bg-amber-50 rounded-lg transition-colors text-slate-500 hover:text-amber-600"
+                        title="Edit Staff"
+                    >
+                        <FiEdit2 size={18} />
+                    </button>
+                    <button
+                        onClick={() => handleDelete(row.id, row.name || `${row.firstName} ${row.lastName}`)}
+                        className="p-2 hover:bg-rose-50 rounded-lg transition-colors text-slate-500 hover:text-rose-600"
+                        title="Delete Staff"
+                    >
+                        <FiTrash2 size={18} />
+                    </button>
+                </div>
             ),
         },
     ];
@@ -132,10 +197,10 @@ const Staff = () => {
                                     setIsTypeOpen(!isTypeOpen);
                                     setIsDeptOpen(false);
                                 }}
-                                className="w-full flex items-center justify-between gap-8 bg-slate-50 border-2 border-slate-50 text-slate-900 px-8 py-4.5 rounded-[1.25rem] font-black text-xs uppercase tracking-widest min-w-[180px] hover:bg-white hover:border-[#0047AB]/20 transition-all"
+                                className="flex items-center justify-between gap-8 bg-[#0047AB] text-white px-6 py-3 rounded-xl font-bold text-sm min-w-[160px] shadow-md hover:bg-[#003580] transition-all"
                             >
                                 {selectedType}
-                                <FiChevronDown className={`transition-transform duration-500 ${isTypeOpen ? 'rotate-180' : ''}`} size={18} />
+                                <FiChevronDown className={`transition-transform duration-300 ${isTypeOpen ? 'rotate-180' : ''}`} size={18} />
                             </button>
                             {isTypeOpen && (
                                 <div className="absolute top-[calc(100%+12px)] left-0 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 py-3 z-[100] animate-in fade-in slide-in-from-top-4 duration-300 ring-1 ring-black/5">
@@ -162,10 +227,10 @@ const Staff = () => {
                                     setIsDeptOpen(!isDeptOpen);
                                     setIsTypeOpen(false);
                                 }}
-                                className="w-full flex items-center justify-between gap-8 bg-slate-50 border-2 border-slate-50 text-slate-900 px-8 py-4.5 rounded-[1.25rem] font-black text-xs uppercase tracking-widest min-w-[220px] hover:bg-white hover:border-[#0047AB]/20 transition-all"
+                                className="flex items-center justify-between gap-8 bg-[#0047AB] text-white px-6 py-3 rounded-xl font-bold text-sm min-w-[160px] shadow-md hover:bg-[#003580] transition-all"
                             >
                                 {selectedDept}
-                                <FiChevronDown className={`transition-transform duration-500 ${isDeptOpen ? 'rotate-180' : ''}`} size={18} />
+                                <FiChevronDown className={`transition-transform duration-300 ${isDeptOpen ? 'rotate-180' : ''}`} size={18} />
                             </button>
                             {isDeptOpen && (
                                 <div className="absolute top-[calc(100%+12px)] left-0 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 py-3 z-[100] max-h-[300px] overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-300 ring-1 ring-black/5 custom-scrollbar">

@@ -98,14 +98,14 @@ const studentSlice = createSlice({
             })
             // Update student
             .addCase(updateStudent.fulfilled, (state, action) => {
-                const index = state.students.findIndex(s => s.id === action.payload.id);
+                const index = state.students.findIndex(s => s.studentId === action.payload.studentId);
                 if (index !== -1) {
                     state.students[index] = action.payload;
                 }
             })
             // Delete student
             .addCase(deleteStudent.fulfilled, (state, action) => {
-                state.students = state.students.filter(s => s.id !== action.payload);
+                state.students = state.students.filter(s => s.studentId !== action.payload);
             });
     },
 });

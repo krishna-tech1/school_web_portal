@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiChevronDown, FiAlertTriangle, FiPackage } from 'react-icons/fi';
 import { Card, Table } from '../components/ui';
+import { inventoryAPI } from '../services/api';
+import InventoryModal from '../components/modals/InventoryModal';
 
 const Inventory = () => {
     const [search, setSearch] = useState('');
@@ -8,9 +10,53 @@ const Inventory = () => {
     const [selectedStatus, setSelectedStatus] = useState('All Status');
     const [isCategoryOpen, setIsCategoryOpen] = useState(false);
     const [isStatusOpen, setIsStatusOpen] = useState(false);
+    const [inventoryData, setInventoryData] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    // Modal State
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingItem, setEditingItem] = useState(null);
 
     const categories = ['All Categories', 'Stationery', 'Sports Equipment', 'Lab Equipment', 'Furniture', 'Electronics', 'Books'];
     const statuses = ['All Status', 'In Stock', 'Low Stock', 'Out of Stock'];
+
+    const fetchInventory = async () => {
+        try {
+            setLoading(true);
+            const res = await inventoryAPI.getAll();
+            setInventoryData(res.data);
+        } catch (err) {
+            console.error('Failed to fetch inventory:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchInventory();
+    }, []);
+
+    const handleSaveItem = async (formData) => {
+        try {
+            // Map camelCase if needed, but the modal already uses snake_case keys match DB
+            await inventoryAPI.save(formData);
+            setIsModalOpen(false);
+            fetchInventory();
+        } catch (err) {
+            console.error('Failed to save item:', err);
+            alert('Error saving inventory item.');
+        }
+    };
+
+    const openEditModal = (item) => {
+        setEditingItem(item);
+        setIsModalOpen(true);
+    };
+
+    const openAddModal = () => {
+        setEditingItem(null);
+        setIsModalOpen(true);
+    };
 
     // Close on click outside
     useEffect(() => {
@@ -22,36 +68,23 @@ const Inventory = () => {
         return () => window.removeEventListener('click', handleClickOutside);
     }, []);
 
-    const baseInventory = [
-        { itemId: 'INV001', name: 'A4 Paper Ream', category: 'Stationery', quantity: 150, minQuantity: 50, unit: 'Reams', location: 'Store Room A', status: 'In Stock' },
-        { itemId: 'INV002', name: 'Whiteboard Markers', category: 'Stationery', quantity: 25, minQuantity: 30, unit: 'Boxes', location: 'Store Room A', status: 'Low Stock' },
-        { itemId: 'INV003', name: 'Football', category: 'Sports Equipment', quantity: 8, minQuantity: 10, unit: 'Pieces', location: 'Sports Room', status: 'Low Stock' },
-        { itemId: 'INV004', name: 'Chemistry Lab Beakers', category: 'Lab Equipment', quantity: 45, minQuantity: 20, unit: 'Pieces', location: 'Chemistry Lab', status: 'In Stock' },
-        { itemId: 'INV005', name: 'Student Desks', category: 'Furniture', quantity: 0, minQuantity: 5, unit: 'Pieces', location: 'Warehouse', status: 'Out of Stock' },
-        { itemId: 'INV006', name: 'Projectors', category: 'Electronics', quantity: 12, minQuantity: 8, unit: 'Pieces', location: 'IT Room', status: 'In Stock' },
-        { itemId: 'INV007', name: 'Basketball', category: 'Sports Equipment', quantity: 6, minQuantity: 8, unit: 'Pieces', location: 'Sports Room', status: 'Low Stock' },
-        { itemId: 'INV008', name: 'Reference Books', category: 'Books', quantity: 250, minQuantity: 100, unit: 'Books', location: 'Library', status: 'In Stock' },
-        { itemId: 'INV009', name: 'Microscopes', category: 'Lab Equipment', quantity: 15, minQuantity: 10, unit: 'Pieces', location: 'Biology Lab', status: 'In Stock' },
-        { itemId: 'INV010', name: 'Chairs', category: 'Furniture', quantity: 3, minQuantity: 10, unit: 'Pieces', location: 'Warehouse', status: 'Low Stock' },
-    ];
-
     // Filter Logic
-    const inventoryList = baseInventory.filter(item => {
-        const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase()) ||
-            item.itemId.toLowerCase().includes(search.toLowerCase());
+    const inventoryList = inventoryData.filter(item => {
+        const matchesSearch = (item.name || '').toLowerCase().includes(search.toLowerCase()) ||
+            (item.item_id || '').toLowerCase().includes(search.toLowerCase());
         const matchesCategory = selectedCategory === 'All Categories' || item.category === selectedCategory;
         const matchesStatus = selectedStatus === 'All Status' || item.status === selectedStatus;
         return matchesSearch && matchesCategory && matchesStatus;
     });
 
-    const lowStockCount = baseInventory.filter(item => item.status === 'Low Stock').length;
-    const outOfStockCount = baseInventory.filter(item => item.status === 'Out of Stock').length;
-    const totalItems = baseInventory.length;
+    const lowStockCount = inventoryData.filter(item => item.status === 'Low Stock').length;
+    const outOfStockCount = inventoryData.filter(item => item.status === 'Out of Stock').length;
+    const totalItems = inventoryData.length;
 
     const columns = [
         {
             header: 'Item ID',
-            accessor: 'itemId',
+            accessor: 'item_id',
         },
         {
             header: 'Item Name',
@@ -74,7 +107,7 @@ const Inventory = () => {
         {
             header: 'Min. Quantity',
             render: (row) => (
-                <span className="text-slate-600">{row.minQuantity} {row.unit}</span>
+                <span className="text-slate-600">{row.min_quantity} {row.unit}</span>
             ),
         },
         {
@@ -98,10 +131,21 @@ const Inventory = () => {
             header: 'Actions',
             render: (row) => (
                 <div className="flex gap-2">
-                    <button className="p-2 hover:bg-blue-50 rounded-lg transition-colors text-[#0047AB]">
+                    <button 
+                        onClick={() => openEditModal(row)}
+                        className="p-2 hover:bg-blue-50 rounded-lg transition-colors text-[#0047AB]"
+                    >
                         <FiEdit2 size={16} />
                     </button>
-                    <button className="p-2 hover:bg-red-50 rounded-lg transition-colors text-red-500">
+                    <button 
+                        onClick={async () => {
+                            if(window.confirm(`Delete ${row.name}?`)) {
+                                await inventoryAPI.delete(row.id);
+                                fetchInventory();
+                            }
+                        }}
+                        className="p-2 hover:bg-red-50 rounded-lg transition-colors text-red-500"
+                    >
                         <FiTrash2 size={16} />
                     </button>
                 </div>
@@ -126,6 +170,7 @@ const Inventory = () => {
                     </div>
                 </div>
                 <button
+                    onClick={openAddModal}
                     className="w-full md:w-auto flex items-center justify-center gap-3 bg-[#0047AB] hover:bg-[#003580] text-white px-10 py-4 rounded-[1.5rem] font-black shadow-xl shadow-blue-200/50 transition-all hover:-translate-y-1 active:scale-95 text-sm uppercase tracking-widest"
                 >
                     <FiPlus size={20} />
@@ -189,16 +234,16 @@ const Inventory = () => {
                     <div className="flex gap-4 w-full md:w-auto">
                         {/* Category Dropdown */}
                         <div className="relative flex-1 md:flex-none group/drop" onClick={(e) => e.stopPropagation()}>
-                            <button
-                                onClick={() => {
-                                    setIsCategoryOpen(!isCategoryOpen);
-                                    setIsStatusOpen(false);
-                                }}
-                                className="w-full flex items-center justify-between gap-8 bg-slate-50 border-2 border-slate-50 text-slate-900 px-8 py-4.5 rounded-[1.25rem] font-black text-xs uppercase tracking-widest min-w-[200px] hover:bg-white hover:border-[#0047AB]/20 transition-all"
-                            >
-                                {selectedCategory}
-                                <FiChevronDown className={`transition-transform duration-500 ${isCategoryOpen ? 'rotate-180' : ''}`} size={18} />
-                            </button>
+                                <button
+                                    onClick={() => {
+                                        setIsCategoryOpen(!isCategoryOpen);
+                                        setIsStatusOpen(false);
+                                    }}
+                                    className="flex items-center justify-between gap-8 bg-[#0047AB] text-white px-6 py-3 rounded-xl font-bold text-sm min-w-[160px] shadow-md hover:bg-[#003580] transition-all"
+                                >
+                                    {selectedCategory}
+                                    <FiChevronDown className={`transition-transform duration-500 ${isCategoryOpen ? 'rotate-180' : ''}`} size={18} />
+                                </button>
                             {isCategoryOpen && (
                                 <div className="absolute top-[calc(100%+12px)] left-0 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 py-3 z-[100] animate-in fade-in slide-in-from-top-4 duration-300 ring-1 ring-black/5">
                                     {categories.map(c => (
@@ -219,16 +264,16 @@ const Inventory = () => {
 
                         {/* Status Dropdown */}
                         <div className="relative flex-1 md:flex-none group/drop" onClick={(e) => e.stopPropagation()}>
-                            <button
-                                onClick={() => {
-                                    setIsStatusOpen(!isStatusOpen);
-                                    setIsCategoryOpen(false);
-                                }}
-                                className="w-full flex items-center justify-between gap-8 bg-slate-50 border-2 border-slate-50 text-slate-900 px-8 py-4.5 rounded-[1.25rem] font-black text-xs uppercase tracking-widest min-w-[180px] hover:bg-white hover:border-[#0047AB]/20 transition-all"
-                            >
-                                {selectedStatus}
-                                <FiChevronDown className={`transition-transform duration-500 ${isStatusOpen ? 'rotate-180' : ''}`} size={18} />
-                            </button>
+                                <button
+                                    onClick={() => {
+                                        setIsStatusOpen(!isStatusOpen);
+                                        setIsCategoryOpen(false);
+                                    }}
+                                    className="flex items-center justify-between gap-8 bg-[#0047AB] text-white px-6 py-3 rounded-xl font-bold text-sm min-w-[160px] shadow-md hover:bg-[#003580] transition-all"
+                                >
+                                    {selectedStatus}
+                                    <FiChevronDown className={`transition-transform duration-500 ${isStatusOpen ? 'rotate-180' : ''}`} size={18} />
+                                </button>
                             {isStatusOpen && (
                                 <div className="absolute top-[calc(100%+12px)] left-0 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 py-3 z-[100] animate-in fade-in slide-in-from-top-4 duration-300 ring-1 ring-black/5">
                                     {statuses.map(s => (
@@ -258,6 +303,14 @@ const Inventory = () => {
                     />
                 </div>
             </div>
+
+            {/* Inventory Modal */}
+            <InventoryModal 
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSave={handleSaveItem}
+                initialData={editingItem}
+            />
         </div>
     );
 };

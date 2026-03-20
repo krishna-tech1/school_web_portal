@@ -77,24 +77,38 @@ const StudentList = () => {
         {
             header: 'Actions',
             render: (row) => (
-                <button
-                    onClick={() => navigate(`/students/${row.studentId}`)}
-                    className="p-1 hover:bg-slate-100 rounded-full transition-colors text-slate-500"
-                >
-                    <FiEye size={18} />
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => navigate(`/students/${row.studentId}`)}
+                        className="p-2 hover:bg-blue-50 rounded-lg transition-colors text-slate-500 hover:text-[#0047AB]"
+                        title="View Profile"
+                    >
+                        <FiEye size={18} />
+                    </button>
+                    <button
+                        onClick={() => navigate(`/students/edit/${row.studentId}`)}
+                        className="p-2 hover:bg-amber-50 rounded-lg transition-colors text-slate-500 hover:text-amber-600"
+                        title="Edit Student"
+                    >
+                        <FiEdit2 size={18} />
+                    </button>
+                    <button
+                        onClick={() => {
+                            if (window.confirm(`Are you sure you want to delete ${row.firstName}?`)) {
+                                dispatch(deleteStudent(row.studentId));
+                            }
+                        }}
+                        className="p-2 hover:bg-rose-50 rounded-lg transition-colors text-slate-500 hover:text-rose-600"
+                        title="Delete Student"
+                    >
+                        <FiTrash2 size={18} />
+                    </button>
+                </div>
             ),
         },
     ];
 
-    // Mock data for initial state
-    const baseData = students.length > 0 ? students : [
-        { studentId: 'STU001', firstName: 'Rahul', lastName: 'Sharma', class: '10th Std', section: 'A', feeStatus: 'Pending', pendingFee: '20000' },
-        { studentId: 'STU002', firstName: 'Aman', lastName: 'Gupta', class: '10th Std', section: 'B', feeStatus: 'Pending', pendingFee: '20000' },
-        { studentId: 'STU003', firstName: 'Sita', lastName: 'Patel', class: '10th Std', section: 'A', feeStatus: 'Paid' },
-        { studentId: 'STU004', firstName: 'Vijay', lastName: 'Singh', class: '10th Std', section: 'C', feeStatus: 'Pending', pendingFee: '20000' },
-        { studentId: 'STU005', firstName: 'Priya', lastName: 'Reddy', class: '10th Std', section: 'D', feeStatus: 'Paid' },
-    ];
+    const baseData = students || [];
 
     // Filter Logic
     const studentData = baseData.filter(student => {
