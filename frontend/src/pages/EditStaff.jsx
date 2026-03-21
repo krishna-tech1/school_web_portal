@@ -40,6 +40,9 @@ const EditStaff = () => {
                     cleanedData[key] = response.data[key] === null ? '' : response.data[key];
                 });
                 
+                // Map DB snake_case to Frontend camelCase
+                if (cleanedData.class_teacher) cleanedData.classTeacher = cleanedData.class_teacher;
+                
                 // Format dates for input fields (YYYY-MM-DD)
                 if (cleanedData.dob) cleanedData.dob = cleanedData.dob.split('T')[0];
 
