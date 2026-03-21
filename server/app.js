@@ -421,6 +421,14 @@ router.post('/staff', async (req, res) => {
         res.status(201).json(result.rows[0]);
     } catch (err) {
         console.error('Create staff error:', err);
+        if (err.code === '23505') {
+            if (err.constraint === 'staff_email_key') {
+                return res.status(400).json({ message: 'Email address already exists. Please use a unique email.' });
+            }
+            if (err.constraint === 'staff_employeeId_key' || err.message.includes('employeeId')) {
+                return res.status(400).json({ message: 'Employee ID already exists.' });
+            }
+        }
         res.status(500).json({ message: 'Error creating staff member' });
     }
 });
@@ -504,6 +512,14 @@ router.put('/staff/:id', async (req, res) => {
         res.json(result.rows[0]);
     } catch (err) {
         console.error('Update staff error:', err);
+        if (err.code === '23505') {
+            if (err.constraint === 'staff_email_key') {
+                return res.status(400).json({ message: 'Email address already exists. Please use a unique email.' });
+            }
+            if (err.constraint === 'staff_employeeId_key' || err.message.includes('employeeId')) {
+                return res.status(400).json({ message: 'Employee ID already exists.' });
+            }
+        }
         res.status(500).json({ message: 'Error updating staff member' });
     }
 });
