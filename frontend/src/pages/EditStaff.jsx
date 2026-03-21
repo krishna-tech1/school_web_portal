@@ -306,12 +306,20 @@ const EditStaff = () => {
                                 <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Class Teacher <span className="text-rose-500">*</span></label>
                                 <div className="flex gap-2">
                                     <select
-                                        value={formData.classTeacher.split(' ')[0] === 'NONE' || formData.classTeacher === '' ? '' : formData.classTeacher.substring(0, formData.classTeacher.lastIndexOf(' ')) || formData.classTeacher}
+                                        value={(() => {
+                                            const parts = (formData.classTeacher || '').split(' ');
+                                            const lastPart = parts[parts.length - 1];
+                                            const hasSection = ['A', 'B', 'C', 'D', 'E'].includes(lastPart);
+                                            const baseClass = hasSection ? parts.slice(0, -1).join(' ') : (formData.classTeacher || '');
+                                            return baseClass === 'NONE' || baseClass === '' ? '' : baseClass;
+                                        })()}
                                         onChange={(e) => {
                                             const newClass = e.target.value;
-                                            const parts = formData.classTeacher.split(' ');
-                                            const currentSection = parts.length > 1 && ['A', 'B', 'C', 'D', 'E'].includes(parts[parts.length - 1]) ? parts[parts.length - 1] : '';
-                                            const newCombined = newClass === '' ? '' : (currentSection ? `${newClass} ${currentSection}` : newClass);
+                                            const parts = (formData.classTeacher || '').split(' ');
+                                            const lastPart = parts[parts.length - 1];
+                                            const hasSection = ['A', 'B', 'C', 'D', 'E'].includes(lastPart);
+                                            const section = hasSection ? lastPart : '';
+                                            const newCombined = newClass === '' ? '' : (section ? `${newClass} ${section}` : newClass);
                                             setFormData(prev => ({ ...prev, classTeacher: newCombined }));
                                         }}
                                         className="flex-[2] px-4 py-3 bg-slate-50 border-2 border-slate-50 rounded-xl text-sm font-bold focus:bg-white focus:border-[#0047AB]/20 focus:ring-4 focus:ring-[#0047AB]/5 transition-all outline-none text-slate-600 appearance-none cursor-pointer"
@@ -330,10 +338,10 @@ const EditStaff = () => {
                                             value={['A', 'B', 'C', 'D', 'E'].includes(formData.classTeacher.split(' ').pop()) ? formData.classTeacher.split(' ').pop() : ''}
                                             onChange={(e) => {
                                                 const section = e.target.value;
-                                                const parts = formData.classTeacher.split(' ');
-                                                const baseClass = ['A', 'B', 'C', 'D', 'E'].includes(parts[parts.length - 1]) 
-                                                    ? formData.classTeacher.substring(0, formData.classTeacher.lastIndexOf(' ')) 
-                                                    : formData.classTeacher;
+                                                const parts = (formData.classTeacher || '').split(' ');
+                                                const lastPart = parts[parts.length - 1];
+                                                const hasSection = ['A', 'B', 'C', 'D', 'E'].includes(lastPart);
+                                                const baseClass = hasSection ? parts.slice(0, -1).join(' ') : (formData.classTeacher || '');
                                                 const newCombined = section ? `${baseClass} ${section}` : baseClass;
                                                 setFormData(prev => ({ ...prev, classTeacher: newCombined }));
                                             }}
@@ -363,12 +371,19 @@ const EditStaff = () => {
                                 {formData.subjects.map((item, index) => (
                                     <div key={index} className="flex gap-2">
                                         <select
-                                            value={item.class.substring(0, item.class.lastIndexOf(' ')) || item.class}
+                                            value={(() => {
+                                                const parts = (item.class || '').split(' ');
+                                                const lastPart = parts[parts.length - 1];
+                                                const hasSection = ['A', 'B', 'C', 'D', 'E'].includes(lastPart);
+                                                return hasSection ? parts.slice(0, -1).join(' ') : (item.class || '');
+                                            })()}
                                             onChange={(e) => {
                                                 const newClass = e.target.value;
-                                                const parts = item.class.split(' ');
-                                                const currentSection = parts.length > 1 && ['A', 'B', 'C', 'D', 'E'].includes(parts[parts.length - 1]) ? parts[parts.length - 1] : '';
-                                                const nextVal = currentSection ? `${newClass} ${currentSection}` : newClass;
+                                                const parts = (item.class || '').split(' ');
+                                                const lastPart = parts[parts.length - 1];
+                                                const hasSection = ['A', 'B', 'C', 'D', 'E'].includes(lastPart);
+                                                const section = hasSection ? lastPart : '';
+                                                const nextVal = section ? `${newClass} ${section}` : newClass;
                                                 handleSubjectChange(index, 'class', nextVal);
                                             }}
                                             className="w-1/4 px-4 py-3 bg-slate-50 border-2 border-slate-50 rounded-xl text-sm font-bold focus:bg-white focus:border-[#0047AB]/20 focus:ring-4 focus:ring-[#0047AB]/5 transition-all outline-none"
@@ -386,10 +401,12 @@ const EditStaff = () => {
                                             value={['A', 'B', 'C', 'D', 'E'].includes(item.class.split(' ').pop()) ? item.class.split(' ').pop() : ''}
                                             onChange={(e) => {
                                                 const section = e.target.value;
-                                                const parts = item.class.split(' ');
-                                                const baseClass = ['A', 'B', 'C', 'D', 'E'].includes(parts[parts.length - 1]) 
-                                                    ? item.class.substring(0, item.class.lastIndexOf(' ')) 
-                                                    : item.class;
+                                                const parts = (item.class || '').split(' ');
+                                                const lastPart = parts[parts.length - 1];
+                                                const hasSection = ['A', 'B', 'C', 'D', 'E'].includes(lastPart);
+                                                const baseClass = hasSection 
+                                                    ? parts.slice(0, -1).join(' ') 
+                                                    : (item.class || '');
                                                 const nextVal = section ? `${baseClass} ${section}` : baseClass;
                                                 handleSubjectChange(index, 'class', nextVal);
                                             }}
