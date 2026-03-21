@@ -304,21 +304,50 @@ const EditStaff = () => {
                             </div>
                             <div>
                                 <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Class Teacher <span className="text-rose-500">*</span></label>
-                                <select
-                                    name="classTeacher"
-                                    value={formData.classTeacher}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-50 rounded-xl text-sm font-bold focus:bg-white focus:border-[#0047AB]/20 focus:ring-4 focus:ring-[#0047AB]/5 transition-all outline-none text-slate-600 appearance-none cursor-pointer"
-                                >
-                                    <option value="">None</option>
-                                    <option value="LKG">LKG</option>
-                                    <option value="UKG">UKG</option>
-                                    {[...Array(12)].map((_, i) => (
-                                        <option key={i+1} value={`${i+1}${i+1 === 1 ? 'st' : i+1 === 2 ? 'nd' : i+1 === 3 ? 'rd' : 'th'} Std`}>
-                                            {i+1}{i+1 === 1 ? 'st' : i+1 === 2 ? 'nd' : i+1 === 3 ? 'rd' : 'th'} Std
-                                        </option>
-                                    ))}
-                                </select>
+                                <div className="flex gap-2">
+                                    <select
+                                        value={formData.classTeacher.split(' ')[0] === 'NONE' || formData.classTeacher === '' ? '' : formData.classTeacher.substring(0, formData.classTeacher.lastIndexOf(' ')) || formData.classTeacher}
+                                        onChange={(e) => {
+                                            const newClass = e.target.value;
+                                            const parts = formData.classTeacher.split(' ');
+                                            const currentSection = parts.length > 1 && ['A', 'B', 'C', 'D', 'E'].includes(parts[parts.length - 1]) ? parts[parts.length - 1] : '';
+                                            const newCombined = newClass === '' ? '' : (currentSection ? `${newClass} ${currentSection}` : newClass);
+                                            setFormData(prev => ({ ...prev, classTeacher: newCombined }));
+                                        }}
+                                        className="flex-[2] px-4 py-3 bg-slate-50 border-2 border-slate-50 rounded-xl text-sm font-bold focus:bg-white focus:border-[#0047AB]/20 focus:ring-4 focus:ring-[#0047AB]/5 transition-all outline-none text-slate-600 appearance-none cursor-pointer"
+                                    >
+                                        <option value="">None</option>
+                                        <option value="LKG">LKG</option>
+                                        <option value="UKG">UKG</option>
+                                        {[...Array(12)].map((_, i) => (
+                                            <option key={i+1} value={`${i+1}${i+1 === 1 ? 'st' : i+1 === 2 ? 'nd' : i+1 === 3 ? 'rd' : 'th'} Std`}>
+                                                {i+1}{i+1 === 1 ? 'st' : i+1 === 2 ? 'nd' : i+1 === 3 ? 'rd' : 'th'} Std
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {(formData.classTeacher !== '' && formData.classTeacher !== 'NONE') && (
+                                        <select
+                                            value={['A', 'B', 'C', 'D', 'E'].includes(formData.classTeacher.split(' ').pop()) ? formData.classTeacher.split(' ').pop() : ''}
+                                            onChange={(e) => {
+                                                const section = e.target.value;
+                                                const parts = formData.classTeacher.split(' ');
+                                                const baseClass = ['A', 'B', 'C', 'D', 'E'].includes(parts[parts.length - 1]) 
+                                                    ? formData.classTeacher.substring(0, formData.classTeacher.lastIndexOf(' ')) 
+                                                    : formData.classTeacher;
+                                                const newCombined = section ? `${baseClass} ${section}` : baseClass;
+                                                setFormData(prev => ({ ...prev, classTeacher: newCombined }));
+                                            }}
+                                            className="flex-1 px-4 py-3 bg-slate-50 border-2 border-slate-50 rounded-xl text-sm font-bold focus:bg-white focus:border-[#0047AB]/20 focus:ring-4 focus:ring-[#0047AB]/5 transition-all outline-none text-slate-600 appearance-none cursor-pointer"
+                                        >
+                                            <option value="">Section</option>
+                                            <option value="A">A</option>
+                                            <option value="B">B</option>
+                                            <option value="C">C</option>
+                                            <option value="D">D</option>
+                                            <option value="E">E</option>
+                                        </select>
+                                    )}
+                                </div>
                             </div>
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
@@ -334,9 +363,15 @@ const EditStaff = () => {
                                 {formData.subjects.map((item, index) => (
                                     <div key={index} className="flex gap-2">
                                         <select
-                                            value={item.class}
-                                            onChange={(e) => handleSubjectChange(index, 'class', e.target.value)}
-                                            className="w-1/3 px-4 py-3 bg-slate-50 border-2 border-slate-50 rounded-xl text-sm font-bold focus:bg-white focus:border-[#0047AB]/20 focus:ring-4 focus:ring-[#0047AB]/5 transition-all outline-none"
+                                            value={item.class.substring(0, item.class.lastIndexOf(' ')) || item.class}
+                                            onChange={(e) => {
+                                                const newClass = e.target.value;
+                                                const parts = item.class.split(' ');
+                                                const currentSection = parts.length > 1 && ['A', 'B', 'C', 'D', 'E'].includes(parts[parts.length - 1]) ? parts[parts.length - 1] : '';
+                                                const nextVal = currentSection ? `${newClass} ${currentSection}` : newClass;
+                                                handleSubjectChange(index, 'class', nextVal);
+                                            }}
+                                            className="w-1/4 px-4 py-3 bg-slate-50 border-2 border-slate-50 rounded-xl text-sm font-bold focus:bg-white focus:border-[#0047AB]/20 focus:ring-4 focus:ring-[#0047AB]/5 transition-all outline-none"
                                         >
                                             <option value="">Class</option>
                                             <option value="LKG">LKG</option>
@@ -346,6 +381,26 @@ const EditStaff = () => {
                                                     {i+1}{i+1 === 1 ? 'st' : i+1 === 2 ? 'nd' : i+1 === 3 ? 'rd' : 'th'} Std
                                                 </option>
                                             ))}
+                                        </select>
+                                        <select
+                                            value={['A', 'B', 'C', 'D', 'E'].includes(item.class.split(' ').pop()) ? item.class.split(' ').pop() : ''}
+                                            onChange={(e) => {
+                                                const section = e.target.value;
+                                                const parts = item.class.split(' ');
+                                                const baseClass = ['A', 'B', 'C', 'D', 'E'].includes(parts[parts.length - 1]) 
+                                                    ? item.class.substring(0, item.class.lastIndexOf(' ')) 
+                                                    : item.class;
+                                                const nextVal = section ? `${baseClass} ${section}` : baseClass;
+                                                handleSubjectChange(index, 'class', nextVal);
+                                            }}
+                                            className="w-20 px-4 py-3 bg-slate-50 border-2 border-slate-50 rounded-xl text-sm font-bold focus:bg-white focus:border-[#0047AB]/20 focus:ring-4 focus:ring-[#0047AB]/5 transition-all outline-none"
+                                        >
+                                            <option value="">—</option>
+                                            <option value="A">A</option>
+                                            <option value="B">B</option>
+                                            <option value="C">C</option>
+                                            <option value="D">D</option>
+                                            <option value="E">E</option>
                                         </select>
                                         <input
                                             type="text"
