@@ -7,24 +7,24 @@ import { Card, Table } from '../components/ui';
 const Staff = () => {
     const navigate = useNavigate();
     const [search, setSearch] = useState('');
-    const [selectedType, setSelectedType] = useState('All Type');
-    const [selectedDept, setSelectedDept] = useState('All Department');
+    const [selectedClass, setSelectedClass] = useState('All Class');
+    const [selectedSection, setSelectedSection] = useState('All Section');
     const [staffData, setStaffData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     // Dropdown states
-    const [isTypeOpen, setIsTypeOpen] = useState(false);
-    const [isDeptOpen, setIsDeptOpen] = useState(false);
+    const [isClassOpen, setIsClassOpen] = useState(false);
+    const [isSectionOpen, setIsSectionOpen] = useState(false);
 
-    const departments = ['All Department', 'Academic', 'Science', 'Mathematics', 'Physical Education', 'Administration', 'Support Staff'];
-    const staffTypes = ['All Type', 'Teaching', 'Non-Teaching'];
+    const classes = ['All Class', 'LKG', 'UKG', ...[...Array(12)].map((_, i) => `${i + 1}${i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'} Std`)];
+    const sections = ['All Section', 'A Section', 'B Section', 'C Section', 'D Section', 'E Section'];
 
     // Close on click outside
     useEffect(() => {
         const handleClickOutside = () => {
-            setIsTypeOpen(false);
-            setIsDeptOpen(false);
+            setIsClassOpen(false);
+            setIsSectionOpen(false);
         };
         window.addEventListener('click', handleClickOutside);
         fetchStaff();
@@ -64,9 +64,9 @@ const Staff = () => {
         
         const matchesSearch = name.toLowerCase().includes(search.toLowerCase()) ||
             sId.toLowerCase().includes(search.toLowerCase());
-        const matchesType = selectedType === 'All Type' || staff.staff_type === selectedType;
-        const matchesDept = selectedDept === 'All Department' || staff.department === selectedDept;
-        return matchesSearch && matchesType && matchesDept;
+        const matchesClass = selectedClass === 'All Class' || staff.class_teacher?.includes(selectedClass);
+        const matchesSection = selectedSection === 'All Section' || staff.class_teacher?.includes(selectedSection.split(' ')[0]);
+        return matchesSearch && matchesClass && matchesSection;
     });
 
     const columns = [
@@ -106,18 +106,6 @@ const Staff = () => {
         {
             header: 'Class Teacher',
             render: (row) => <span>{row.class_teacher || 'None'}</span>,
-        },
-        {
-            header: 'Subjects',
-            render: (row) => {
-                try {
-                    const subjects = JSON.parse(row.subjects || '[]');
-                    if (!Array.isArray(subjects)) throw new Error();
-                    return <span>{subjects.map(s => `${s.class || ''} ${s.subject || ''}`.trim()).filter(Boolean).join(', ') || '—'}</span>;
-                } catch (e) {
-                    return <span>{row.subjects || '—'}</span>;
-                }
-            },
         },
         {
             header: 'Actions',
@@ -190,60 +178,60 @@ const Staff = () => {
                     </div>
 
                     <div className="flex gap-4 w-full md:w-auto">
-                        {/* Staff Type Dropdown */}
+                        {/* Class Dropdown */}
                         <div className="relative flex-1 md:flex-none group/drop" onClick={(e) => e.stopPropagation()}>
                             <button
                                 onClick={() => {
-                                    setIsTypeOpen(!isTypeOpen);
-                                    setIsDeptOpen(false);
+                                    setIsClassOpen(!isClassOpen);
+                                    setIsSectionOpen(false);
                                 }}
                                 className="flex items-center justify-between gap-8 bg-[#0047AB] text-white px-6 py-3 rounded-xl font-bold text-sm min-w-[160px] shadow-md hover:bg-[#003580] transition-all"
                             >
-                                {selectedType}
-                                <FiChevronDown className={`transition-transform duration-300 ${isTypeOpen ? 'rotate-180' : ''}`} size={18} />
+                                {selectedClass}
+                                <FiChevronDown className={`transition-transform duration-300 ${isClassOpen ? 'rotate-180' : ''}`} size={18} />
                             </button>
-                            {isTypeOpen && (
-                                <div className="absolute top-[calc(100%+12px)] left-0 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 py-3 z-[100] animate-in fade-in slide-in-from-top-4 duration-300 ring-1 ring-black/5">
-                                    {staffTypes.map(t => (
+                            {isClassOpen && (
+                                <div className="absolute top-[calc(100%+12px)] left-0 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 py-3 z-[100] max-h-[300px] overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-300 ring-1 ring-black/5 custom-scrollbar">
+                                    {classes.map(c => (
                                         <button
-                                            key={t}
+                                            key={c}
                                             onClick={() => {
-                                                setSelectedType(t);
-                                                setIsTypeOpen(false);
+                                                setSelectedClass(c);
+                                                setIsClassOpen(false);
                                             }}
-                                            className={`w-full text-left px-6 py-3 text-[13px] font-black uppercase tracking-widest transition-colors hover:bg-slate-50 ${selectedType === t ? 'text-[#0047AB] bg-blue-50' : 'text-slate-600'}`}
+                                            className={`w-full text-left px-6 py-3 text-[13px] font-black uppercase tracking-widest transition-colors hover:bg-slate-50 ${selectedClass === c ? 'text-[#0047AB] bg-blue-50' : 'text-slate-600'}`}
                                         >
-                                            {t}
+                                            {c}
                                         </button>
                                     ))}
                                 </div>
                             )}
                         </div>
 
-                        {/* Department Dropdown */}
+                        {/* Section Dropdown */}
                         <div className="relative flex-1 md:flex-none group/drop" onClick={(e) => e.stopPropagation()}>
                             <button
                                 onClick={() => {
-                                    setIsDeptOpen(!isDeptOpen);
-                                    setIsTypeOpen(false);
+                                    setIsSectionOpen(!isSectionOpen);
+                                    setIsClassOpen(false);
                                 }}
                                 className="flex items-center justify-between gap-8 bg-[#0047AB] text-white px-6 py-3 rounded-xl font-bold text-sm min-w-[160px] shadow-md hover:bg-[#003580] transition-all"
                             >
-                                {selectedDept}
-                                <FiChevronDown className={`transition-transform duration-300 ${isDeptOpen ? 'rotate-180' : ''}`} size={18} />
+                                {selectedSection}
+                                <FiChevronDown className={`transition-transform duration-300 ${isSectionOpen ? 'rotate-180' : ''}`} size={18} />
                             </button>
-                            {isDeptOpen && (
+                            {isSectionOpen && (
                                 <div className="absolute top-[calc(100%+12px)] left-0 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 py-3 z-[100] max-h-[300px] overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-300 ring-1 ring-black/5 custom-scrollbar">
-                                    {departments.map(d => (
+                                    {sections.map(s => (
                                         <button
-                                            key={d}
+                                            key={s}
                                             onClick={() => {
-                                                setSelectedDept(d);
-                                                setIsDeptOpen(false);
+                                                setSelectedSection(s);
+                                                setIsSectionOpen(false);
                                             }}
-                                            className={`w-full text-left px-6 py-3 text-[13px] font-black uppercase tracking-widest transition-colors hover:bg-slate-50 ${selectedDept === d ? 'text-[#0047AB] bg-blue-50' : 'text-slate-600'}`}
+                                            className={`w-full text-left px-6 py-3 text-[13px] font-black uppercase tracking-widest transition-colors hover:bg-slate-50 ${selectedSection === s ? 'text-[#0047AB] bg-blue-50' : 'text-slate-600'}`}
                                         >
-                                            {d}
+                                            {s}
                                         </button>
                                     ))}
                                 </div>
