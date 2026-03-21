@@ -375,7 +375,8 @@ const EditStaff = () => {
                                                 const parts = (item.class || '').split(' ');
                                                 const lastPart = parts[parts.length - 1];
                                                 const hasSection = ['A', 'B', 'C', 'D', 'E'].includes(lastPart);
-                                                return hasSection ? parts.slice(0, -1).join(' ') : (item.class || '');
+                                                const base = hasSection ? parts.slice(0, -1).join(' ') : (item.class || '');
+                                                return base === 'NONE' ? '' : base;
                                             })()}
                                             onChange={(e) => {
                                                 const newClass = e.target.value;
@@ -386,7 +387,7 @@ const EditStaff = () => {
                                                 const nextVal = section ? `${newClass} ${section}` : newClass;
                                                 handleSubjectChange(index, 'class', nextVal);
                                             }}
-                                            className="w-1/4 px-4 py-3 bg-slate-50 border-2 border-slate-50 rounded-xl text-sm font-bold focus:bg-white focus:border-[#0047AB]/20 focus:ring-4 focus:ring-[#0047AB]/5 transition-all outline-none"
+                                            className="flex-[2] min-w-[120px] px-3 py-3 bg-slate-50 border-2 border-slate-50 rounded-xl text-sm font-bold focus:bg-white focus:border-[#0047AB]/20 focus:ring-4 focus:ring-[#0047AB]/5 transition-all outline-none"
                                         >
                                             <option value="">Class</option>
                                             <option value="LKG">LKG</option>
@@ -410,7 +411,7 @@ const EditStaff = () => {
                                                 const nextVal = section ? `${baseClass} ${section}` : baseClass;
                                                 handleSubjectChange(index, 'class', nextVal);
                                             }}
-                                            className="w-20 px-4 py-3 bg-slate-50 border-2 border-slate-50 rounded-xl text-sm font-bold focus:bg-white focus:border-[#0047AB]/20 focus:ring-4 focus:ring-[#0047AB]/5 transition-all outline-none"
+                                            className="w-20 px-2 py-3 bg-slate-50 border-2 border-slate-50 rounded-xl text-sm font-bold focus:bg-white focus:border-[#0047AB]/20 focus:ring-4 focus:ring-[#0047AB]/5 transition-all outline-none text-slate-600"
                                         >
                                             <option value="">—</option>
                                             <option value="A">A</option>
@@ -424,7 +425,7 @@ const EditStaff = () => {
                                             value={item.subject}
                                             onChange={(e) => handleSubjectChange(index, 'subject', e.target.value)}
                                             placeholder="Subject"
-                                            className="flex-1 px-4 py-3 bg-slate-50 border-2 border-slate-50 rounded-xl text-sm font-bold focus:bg-white focus:border-[#0047AB]/20 focus:ring-4 focus:ring-[#0047AB]/5 transition-all outline-none"
+                                            className="flex-[3] min-w-[120px] px-4 py-3 bg-slate-50 border-2 border-slate-50 rounded-xl text-sm font-bold focus:bg-white focus:border-[#0047AB]/20 focus:ring-4 focus:ring-[#0047AB]/5 transition-all outline-none"
                                         />
                                         {formData.subjects.length > 1 && (
                                             <button 
