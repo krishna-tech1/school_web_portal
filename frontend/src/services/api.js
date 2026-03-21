@@ -108,4 +108,10 @@ export const inventoryAPI = {
     delete: (id) => apiClient.delete(`/inventory/${id}`),
 };
 
+// Staff Leave API
+export const leaveAPI = {
+    getAllRequests: () => apiClient.get('/staff-leaves'),
+    updateStatus: (id, status) => apiClient.put(`/staff-leaves/${id}`, { status }),
+};
+
 export default apiClient;

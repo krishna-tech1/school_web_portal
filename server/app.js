@@ -709,6 +709,41 @@ router.get('/test-db', async (req, res) => {
     }
 });
 
+// Staff Leaves
+router.get('/staff-leaves', async (req, res) => {
+    try {
+        const query = `
+            SELECT sl.*, s."firstName", s."lastName", s.photo_url, s.staff_type as designation
+            FROM staff_leaves sl
+            LEFT JOIN staff s ON sl."staffId" = s."staffId"
+            ORDER BY sl."appliedOn" DESC
+        `;
+        const result = await db.query(query);
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Fetch staff leaves error:', err);
+        res.status(500).json({ message: 'Error fetching leave requests.' });
+    }
+});
+
+router.put('/staff-leaves/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        if (!['Approved', 'Rejected'].includes(status)) {
+            return res.status(400).json({ message: 'Invalid status.' });
+        }
+        const result = await db.query(
+            'UPDATE staff_leaves SET status = $1 WHERE id = $2 RETURNING *',
+            [status, id]
+        );
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error('Update staff leave error:', err);
+        res.status(500).json({ message: 'Error updating leave status.' });
+    }
+});
+
 // Mounting the router on /api
 app.use('/api', router);
 

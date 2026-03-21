@@ -1,77 +1,60 @@
-import React, { useState } from 'react';
-import { FiClock, FiCheckCircle, FiXCircle, FiList, FiCalendar, FiFileText } from 'react-icons/fi';
+import React, { useState, useEffect } from 'react';
+import { FiClock, FiCheckCircle, FiXCircle, FiList, FiCalendar, FiFileText, FiLoader } from 'react-icons/fi';
 import { Card } from '../components/ui';
+import { leaveAPI } from '../services/api';
 
 const LeaveTracking = () => {
     const [activeTab, setActiveTab] = useState('Pending');
+    const [leaveRequests, setLeaveRequests] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
+    useEffect(() => {
+        fetchRequests();
+    }, []);
 
-
-    const leaveRequests = [
-        {
-            id: 1,
-            name: 'Mrs. Priya Sharma',
-            staffId: 'STF002',
-            designation: 'Senior Teacher',
-            type: 'Sick Leave',
-            duration: '15/02/2026 - 17/02/2026',
-            appliedOn: '10/02/2026',
-            reason: 'Recovering from severe viral fever',
-            image: 'https://ui-avatars.com/api/?name=Priya+Sharma&background=0047AB&color=fff',
-            status: 'Pending'
-        },
-        {
-            id: 2,
-            name: 'Mr. Robert D\'Souza',
-            staffId: 'STF005',
-            designation: 'Physical Education Coach',
-            type: 'Casual Leave',
-            duration: '18/02/2026 - 19/02/2026',
-            appliedOn: '12/02/2026',
-            reason: 'Attending family wedding at hometown',
-            image: 'https://ui-avatars.com/api/?name=Robert+DSouza&background=0047AB&color=fff',
-            status: 'Pending'
-        },
-        {
-            id: 3,
-            name: 'Ms. Anita Roy',
-            staffId: 'STF009',
-            designation: 'Mathematics Teacher',
-            type: 'Medical Leave',
-            duration: '01/02/2026 - 05/02/2026',
-            appliedOn: '25/01/2026',
-            reason: 'Annual medical checkup and tests',
-            image: 'https://ui-avatars.com/api/?name=Anita+Roy&background=0047AB&color=fff',
-            status: 'Approved'
-        },
-        {
-            id: 4,
-            name: 'Mr. Sahil Varma',
-            staffId: 'STF012',
-            designation: 'History Lecturer',
-            type: 'Personal Leave',
-            duration: '20/02/2026 - 22/02/2026',
-            appliedOn: '15/02/2026',
-            reason: 'Urgent personal work at bank',
-            image: 'https://ui-avatars.com/api/?name=Sahil+Varma&background=0047AB&color=fff',
-            status: 'Rejected'
+    const fetchRequests = async () => {
+        try {
+            setLoading(true);
+            const response = await leaveAPI.getAllRequests();
+            setLeaveRequests(response.data);
+        } catch (err) {
+            console.error('Error fetching leave requests:', err);
+            setError('Failed to load leave requests.');
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
+
+    const handleStatusUpdate = async (id, status) => {
+        try {
+            await leaveAPI.updateStatus(id, status);
+            // Update local state
+            setLeaveRequests(prev => prev.map(req => 
+                req.id === id ? { ...req, status } : req
+            ));
+        } catch (err) {
+            console.error('Error updating status:', err);
+            alert('Failed to update leave status.');
+        }
+    };
 
     const filteredRequests = leaveRequests.filter(req => req.status === activeTab);
-
-    const stats = [
-        { label: 'Pending Request', value: leaveRequests.filter(r => r.status === 'Pending').length, icon: FiClock, color: 'text-orange-500', bg: 'bg-orange-500' },
-        { label: 'Approved', value: leaveRequests.filter(r => r.status === 'Approved').length, icon: FiCheckCircle, color: 'text-green-500', bg: 'bg-green-500' },
-        { label: 'Rejected', value: leaveRequests.filter(r => r.status === 'Rejected').length, icon: FiXCircle, color: 'text-red-500', bg: 'bg-red-500' },
-        { label: 'Total Requests', value: leaveRequests.length, icon: FiList, color: 'text-blue-500', bg: 'bg-blue-500' },
-    ];
 
     const tabs = [
         { label: 'Pending', count: leaveRequests.filter(r => r.status === 'Pending').length },
         { label: 'Approved', count: leaveRequests.filter(r => r.status === 'Approved').length },
         { label: 'Rejected', count: leaveRequests.filter(r => r.status === 'Rejected').length },
     ];
+
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-[#FBFBFE]">
+                <FiLoader className="text-[#0047AB] animate-spin" size={40} />
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Loading leave requests...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="p-4 md:p-10 bg-[#FBFBFE] min-h-screen animate-in fade-in duration-1000">
@@ -150,9 +133,13 @@ const LeaveTracking = () => {
                 {filteredRequests.map((request) => (
                     <Card key={request.id} className="border-none shadow-sm rounded-3xl p-8 bg-white max-w-4xl w-full">
                         <div className="flex items-start gap-4 mb-8">
-                            <img src={request.image} alt={request.name} className="w-16 h-16 rounded-full object-cover border-2 border-slate-50 shadow-sm" />
+                            <img 
+                                src={request.photo_url || `https://ui-avatars.com/api/?name=${request.firstName}+${request.lastName}&background=0047AB&color=fff`} 
+                                alt={request.firstName} 
+                                className="w-16 h-16 rounded-full object-cover border-2 border-slate-50 shadow-sm" 
+                            />
                             <div>
-                                <h3 className="text-lg font-bold text-slate-900">{request.name}</h3>
+                                <h3 className="text-lg font-bold text-slate-900">{request.firstName} {request.lastName}</h3>
                                 <p className="text-slate-400 font-bold text-sm tracking-wide">{request.staffId} • {request.designation}</p>
                             </div>
                         </div>
@@ -160,15 +147,15 @@ const LeaveTracking = () => {
                         <div className="space-y-4 mb-8">
                             <div className="flex items-center gap-3 text-slate-600 font-bold text-sm">
                                 <FiFileText className="text-slate-400" size={18} />
-                                <span>Leave Type : {request.type}</span>
+                                <span>Leave Type : {request.leaveType}</span>
                             </div>
                             <div className="flex items-center gap-3 text-slate-600 font-bold text-sm">
                                 <FiCalendar className="text-slate-400" size={18} />
-                                <span>Duration : {request.duration}</span>
+                                <span>Duration : {new Date(request.startDate).toLocaleDateString()} - {new Date(request.endDate).toLocaleDateString()}</span>
                             </div>
                             <div className="flex items-center gap-3 text-slate-600 font-bold text-sm">
                                 <FiClock className="text-slate-400" size={18} />
-                                <span>Applied On : {request.appliedOn}</span>
+                                <span>Applied On : {new Date(request.appliedOn).toLocaleDateString()}</span>
                             </div>
                         </div>
 
@@ -177,13 +164,19 @@ const LeaveTracking = () => {
                             <p className="text-slate-900 font-bold text-base">{request.reason}</p>
                         </div>
 
-                        {/* Action Buttons - Only visible for Pending per user request */}
+                        {/* Action Buttons - Only visible for Pending */}
                         {activeTab === 'Pending' && (
                             <div className="grid grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                <button className="bg-[#00b341] hover:bg-[#009637] text-white py-4 rounded-xl font-bold shadow-lg shadow-green-100 transition-all active:scale-95">
+                                <button 
+                                    onClick={() => handleStatusUpdate(request.id, 'Approved')}
+                                    className="bg-[#00b341] hover:bg-[#009637] text-white py-4 rounded-xl font-bold shadow-lg shadow-green-100 transition-all active:scale-95"
+                                >
                                     Approve
                                 </button>
-                                <button className="bg-[#ff0000] hover:bg-[#d90000] text-white py-4 rounded-xl font-bold shadow-lg shadow-red-100 transition-all active:scale-95">
+                                <button 
+                                    onClick={() => handleStatusUpdate(request.id, 'Rejected')}
+                                    className="bg-[#ff0000] hover:bg-[#d90000] text-white py-4 rounded-xl font-bold shadow-lg shadow-red-100 transition-all active:scale-95"
+                                >
                                     Reject
                                 </button>
                             </div>
@@ -192,7 +185,7 @@ const LeaveTracking = () => {
                 ))}
 
                 {filteredRequests.length === 0 && (
-                    <div className="py-20 text-center bg-white rounded-3xl border-2 border-dashed border-slate-100">
+                    <div className="py-20 text-center bg-white rounded-3xl border-2 border-dashed border-slate-100 w-full max-w-4xl">
                         <p className="text-slate-400 font-bold text-lg">No {activeTab.toLowerCase()} leave requests found</p>
                     </div>
                 )}
