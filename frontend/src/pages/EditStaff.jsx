@@ -277,7 +277,7 @@ const EditStaff = () => {
                         <div className="space-y-5">
                             <div>
                                 <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2 flex justify-between items-center">
-                                    Employee ID
+                                    <span>Employee ID <span className="text-rose-500">*</span></span>
                                     <span className="text-[9px] lowercase font-medium opacity-60">Max 20</span>
                                 </label>
                                 <input
@@ -381,7 +381,7 @@ const EditStaff = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2 flex justify-between items-center">
-                                    First Name
+                                    <span>First Name <span className="text-rose-500">*</span></span>
                                     <span className="text-[9px] lowercase font-medium opacity-60">Max 32</span>
                                 </label>
                                 <input
@@ -395,7 +395,7 @@ const EditStaff = () => {
                             </div>
                             <div>
                                 <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2 flex justify-between items-center">
-                                    Last Name
+                                    <span>Last Name <span className="text-rose-500">*</span></span>
                                     <span className="text-[9px] lowercase font-medium opacity-60">Max 32</span>
                                 </label>
                                 <input
@@ -409,7 +409,7 @@ const EditStaff = () => {
                             </div>
                             <div>
                                 <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2 flex justify-between items-center">
-                                    Email Address
+                                    <span>Email Address <span className="text-rose-500">*</span></span>
                                     <span className="text-[9px] lowercase font-medium opacity-60">Max 50</span>
                                 </label>
                                 <div className="relative">

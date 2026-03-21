@@ -232,7 +232,7 @@ const AddStaff = () => {
                         <div className="space-y-5">
                             <div>
                                 <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2 flex justify-between items-center">
-                                    <span>Employee ID</span>
+                                    <span>Employee ID <span className="text-rose-500">*</span></span>
                                     <span className="text-[9px] lowercase font-medium opacity-60">Max 20</span>
                                 </label>
                                 <input
@@ -381,7 +381,7 @@ const AddStaff = () => {
                             </div>
                             <div>
                                 <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2 flex justify-between items-center">
-                                    <span>Phone Number <span className="text-rose-500">*</span></span>
+                                    <span>Phone Number</span>
                                     <span className="text-[9px] lowercase font-medium opacity-60">Max 15</span>
                                 </label>
                                 <div className="relative">
