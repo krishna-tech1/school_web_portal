@@ -168,19 +168,18 @@ const StaffProfile = () => {
                                 <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.15em] mb-2 leading-none">Subjects</p>
                                 <div className="space-y-1">
                                     {(() => {
-                                        try {
-                                            const subjs = JSON.parse(staff.subjects || '[]');
-                                            if (!Array.isArray(subjs)) throw new Error();
-                                            if (subjs.length === 0) return '—';
-                                            return subjs.map((s, i) => (
-                                                <div key={i} className="text-lg font-bold text-slate-800">
-                                                    {s.class && <span className="text-slate-400 mr-2 text-sm">{s.class}:</span>}
-                                                    {s.subject}
-                                                </div>
-                                            ));
-                                        } catch (e) {
-                                            return <p className="text-lg font-bold text-slate-800">{staff.subjects || '—'}</p>;
+                                        let subjs = staff.subjects;
+                                        if (typeof subjs === 'string' && subjs) {
+                                            try { subjs = JSON.parse(subjs); } catch (e) { subjs = []; }
                                         }
+                                        if (!Array.isArray(subjs) || subjs.length === 0) return '—';
+                                        
+                                        return subjs.map((s, i) => (
+                                            <div key={i} className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                                <span className="text-slate-300 text-[10px] font-black uppercase tracking-widest">{s.class}:</span>
+                                                <span>{s.subject}</span>
+                                            </div>
+                                        ));
                                     })()}
                                 </div>
                             </div>
