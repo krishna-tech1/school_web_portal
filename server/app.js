@@ -350,8 +350,7 @@ router.post('/staff', async (req, res) => {
     try {
         const { 
             firstName, lastName, email, phone, dob, gender, address, city, state, zipCode, 
-            employeeId, qualification, experience, salary,
-            photo_url, classTeacher, subjects
+            employeeId, photo_url, classTeacher, subjects
         } = req.body;
 
         // Backend Mandatory Fields Validation
@@ -383,14 +382,14 @@ router.post('/staff', async (req, res) => {
 
         // Check Duplicate Staff ID and Class Teacher in DB (Ignore NONE)
         const duplicateCheck = await db.query(
-            'SELECT "employeeId", class_teacher FROM staff WHERE "employeeId" = $1 OR (class_teacher = $2 AND class_teacher NOT IN (\'\', \'NONE\') AND class_teacher IS NOT NULL)',
+            'SELECT "employeeId", class_teacher FROM staff WHERE LOWER("employeeId") = LOWER($1) OR (class_teacher = $2 AND class_teacher NOT IN (\'\', \'NONE\') AND class_teacher IS NOT NULL)',
             [employeeId, classTeacher]
         );
 
         if (duplicateCheck.rows.length > 0) {
             const dup = duplicateCheck.rows[0];
-            if (dup.employeeId === employeeId) {
-                return res.status(400).json({ message: `Staff ID ${employeeId} is already in use by another teacher.` });
+            if (dup.employeeId?.toLowerCase() === employeeId?.toLowerCase()) {
+                return res.status(400).json({ message: `A teacher with ID ${employeeId} already exists.` });
             }
             if (dup.class_teacher === classTeacher) {
                 return res.status(400).json({ message: `Class ${classTeacher} already has a designated Class Teacher.` });
@@ -405,9 +404,9 @@ router.post('/staff', async (req, res) => {
         const query = `
             INSERT INTO staff (
                 "firstName", "lastName", email, phone, dob, gender, address, city, state, "zipCode", 
-                "employeeId", "staffId", role, qualification, experience, salary, staff_type, photo_url,
+                "employeeId", "staffId", staff_type, photo_url,
                 class_teacher, subjects
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20) 
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) 
             RETURNING *
         `;
         // Generate a cleaner, unique Smart ID (STF-XXXXXX)
@@ -415,7 +414,7 @@ router.post('/staff', async (req, res) => {
         const subjectsStr = Array.isArray(subjects) ? JSON.stringify(subjects.filter(s => s.class || s.subject)) : '[]';
         const values = [
             firstName, lastName, email, phone, dob || null, gender, address, city, state, zipCode, 
-            employeeId, staffIdRaw, 'Staff', qualification, experience, salary, req.body.staffType || 'Teaching', photo_url,
+            employeeId, staffIdRaw, req.body.staffType || 'Teaching', photo_url,
             classTeacher, subjectsStr
         ];
         const result = await db.query(query, values);
@@ -432,7 +431,7 @@ router.put('/staff/:id', async (req, res) => {
         const { id } = req.params;
         const { 
             firstName, lastName, email, phone, dob, gender, address, city, state, zipCode, 
-            employeeId, qualification, experience, salary, photo_url,
+            employeeId, photo_url,
             classTeacher, subjects
         } = req.body;
 
@@ -465,14 +464,14 @@ router.put('/staff/:id', async (req, res) => {
 
         // Check Duplicate Staff ID and Class Teacher in DB (excluding current id, ignore NONE for Class Teacher)
         const duplicateCheck = await db.query(
-            'SELECT "employeeId", class_teacher FROM staff WHERE ("employeeId" = $1 OR (class_teacher = $2 AND class_teacher NOT IN (\'\', \'NONE\') AND class_teacher IS NOT NULL)) AND id != $3',
+            'SELECT "employeeId", class_teacher FROM staff WHERE (LOWER("employeeId") = LOWER($1) OR (class_teacher = $2 AND class_teacher NOT IN (\'\', \'NONE\') AND class_teacher IS NOT NULL)) AND id != $3',
             [employeeId, classTeacher, id]
         );
 
         if (duplicateCheck.rows.length > 0) {
             const dup = duplicateCheck.rows[0];
-            if (dup.employeeId === employeeId) {
-                return res.status(400).json({ message: `Staff ID ${employeeId} is already in use by another teacher.` });
+            if (dup.employeeId?.toLowerCase() === employeeId?.toLowerCase()) {
+                return res.status(400).json({ message: `A teacher with ID ${employeeId} already exists.` });
             }
             if (dup.class_teacher === classTeacher) {
                 return res.status(400).json({ message: `Class ${classTeacher} already has a designated Class Teacher.` });
@@ -488,14 +487,14 @@ router.put('/staff/:id', async (req, res) => {
             UPDATE staff SET 
                 "firstName" = $1, "lastName" = $2, email = $3, phone = $4, dob = $5, gender = $6, 
                 address = $7, city = $8, state = $9, "zipCode" = $10, 
-                "employeeId" = $11, "staffId" = $12, role = $13, qualification = $14, experience = $15, salary = $16, 
-                staff_type = $17, photo_url = $18, class_teacher = $19, subjects = $20
-            WHERE id = $21 RETURNING *
+                "employeeId" = $11, "staffId" = $12, 
+                staff_type = $13, photo_url = $14, class_teacher = $15, subjects = $16
+            WHERE id = $17 RETURNING *
         `;
         const subjectsStr = Array.isArray(subjects) ? JSON.stringify(subjects.filter(s => s.class || s.subject)) : '[]';
         const values = [
             firstName, lastName, email, phone, dob || null, gender, address, city, state, zipCode, 
-            employeeId, employeeId, 'Staff', qualification, experience, salary, req.body.staffType, 
+            employeeId, employeeId, req.body.staffType, 
             photo_url, classTeacher, subjectsStr, id
         ];
         const result = await db.query(query, values);
