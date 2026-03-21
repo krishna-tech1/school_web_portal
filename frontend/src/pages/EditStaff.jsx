@@ -42,8 +42,9 @@ const EditStaff = () => {
                     cleanedData[key] = rawData[key] === null ? '' : rawData[key];
                 });
                 
-                // Map snake_case to camelCase
+                // Map DB snake_case to Frontend camelCase
                 if (rawData.class_teacher) cleanedData.classTeacher = rawData.class_teacher;
+                if (rawData.staff_type) cleanedData.staffType = rawData.staff_type;
                 
                 // Format dates (YYYY-MM-DD)
                 if (cleanedData.dob) cleanedData.dob = cleanedData.dob.split('T')[0];
