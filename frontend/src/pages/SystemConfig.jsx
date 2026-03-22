@@ -68,12 +68,19 @@ const SystemConfig = () => {
                         </p>
                         
                         <div className="space-y-4">
+                            <div className="p-4 bg-white/50 border border-rose-200 rounded-2xl">
+                                <p className="text-[11px] font-black text-rose-400 uppercase tracking-widest mb-2">Required Confirmation Text:</p>
+                                <p className="text-[14px] font-black text-[#1C2B4E] select-all italic cursor-help" title="Copy this text">
+                                    "we started new acdamic year or new term"
+                                </p>
+                            </div>
+                            
                             <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1">
-                                Enter confirmation text to enable reset:
+                                Type confirmation here:
                             </label>
                             <input 
                                 type="text"
-                                placeholder="we started new acdamic year or new term"
+                                placeholder="Type the text exactly above..."
                                 value={confirmText}
                                 onChange={(e) => setConfirmText(e.target.value)}
                                 className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold text-[#1C2B4E] focus:border-rose-500 outline-none transition-all placeholder:text-slate-200"
