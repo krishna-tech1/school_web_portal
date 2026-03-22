@@ -168,7 +168,7 @@ const StaffProfile = () => {
                                 <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.15em] mb-2 leading-none">Subjects</p>
                                 <div className="space-y-1">
                                     {(() => {
-                                        let subjs = staff.subjects;
+                                        let subjs = staff.subjects_list || staff.subjects;
                                         if (typeof subjs === 'string' && subjs) {
                                             try { subjs = JSON.parse(subjs); } catch (e) { subjs = []; }
                                         }

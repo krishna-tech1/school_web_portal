@@ -49,8 +49,8 @@ const EditStaff = () => {
                 // Format dates (YYYY-MM-DD)
                 if (cleanedData.dob) cleanedData.dob = cleanedData.dob.split('T')[0];
 
-                // Parse subjects (handle string or parsed object from backend)
-                let subjs = rawData.subjects;
+                // Parse subjects (handle new subjects_list or old subjects column)
+                let subjs = rawData.subjects_list || rawData.subjects;
                 if (typeof subjs === 'string' && subjs) {
                   try {
                     subjs = JSON.parse(subjs);

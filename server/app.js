@@ -410,7 +410,7 @@ router.post('/staff', async (req, res) => {
             INSERT INTO staff (
                 "firstName", "lastName", email, phone, dob, gender, address, city, state, "zipCode", 
                 "employeeId", "staffId", staff_type, photo_url,
-                class_teacher, subjects
+                class_teacher, "subjects_list"
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) 
             RETURNING *
         `;
@@ -510,15 +510,17 @@ router.put('/staff/:id', async (req, res) => {
                 "firstName" = $1, "lastName" = $2, email = $3, phone = $4, dob = $5, gender = $6, 
                 address = $7, city = $8, state = $9, "zipCode" = $10, 
                 "employeeId" = $11, "staffId" = $12, 
-                staff_type = $13, photo_url = $14, class_teacher = $15, subjects = $16
+                staff_type = $13, photo_url = $14, class_teacher = $15, "subjects_list" = $16
             WHERE id = $17 RETURNING *
         `;
         const subjectsStr = Array.isArray(parsedSubjects) ? JSON.stringify(parsedSubjects.filter(s => s.class || s.subject)) : '[]';
         const values = [
             firstName, lastName, email, phone, dob || null, gender, address, city, state, zipCode, 
-            employeeId, employeeId, req.body.staffType, 
-            photo_url, classTeacher, subjectsStr, id
+            employeeId, staffIdRaw, req.body.staffType || 'Teaching', photo_url,
+            classTeacher, subjectsStr, id
         ];
+        
+        console.log('--- FINAL SAVING: subjects_list length =', subjectsStr.length, '---');
         const result = await db.query(query, values);
         if (result.rows.length === 0) {
             return res.status(404).json({ message: 'Staff member not found' });
