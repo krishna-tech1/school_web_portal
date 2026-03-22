@@ -19,10 +19,12 @@ const Announcements = () => {
         fetchAnnouncements();
     }, []);
 
+    const currentUserId = user?.staffId || user?.id || 'admin';
+
     const fetchAnnouncements = async () => {
         try {
             const response = await axios.get(`${API_URL}/api/portal/announcements`, {
-                params: { role: 'admin', userId: user?.staffId }
+                params: { role: 'admin', userId: currentUserId }
             });
             setAnnouncements(response.data);
         } catch (err) {
@@ -39,7 +41,7 @@ const Announcements = () => {
         try {
             setLoading(true);
             await axios.post(`${API_URL}/api/portal/announcements`, {
-                sender_id: user?.staffId || 'admin',
+                sender_id: currentUserId,
                 sender_name: 'Administrator',
                 sender_role: 'admin',
                 target_type: target,
@@ -63,7 +65,7 @@ const Announcements = () => {
         if (!window.confirm('Delete this announcement permanently?')) return;
         try {
             await axios.delete(`${API_URL}/api/portal/announcements/${id}`, {
-                params: { userId: 'admin' }
+                params: { userId: currentUserId }
             });
             fetchAnnouncements();
         } catch (err) {
@@ -202,7 +204,7 @@ const Announcements = () => {
                                         <p className="text-[12px] font-bold text-slate-300">Created: {new Date(ann.created_at).toLocaleDateString()}</p>
                                     </div>
                                 </div>
-                                {ann.sender_id === 'admin' && (
+                                {(ann.sender_id === currentUserId || ann.sender_role === 'admin') && (
                                     <button 
                                         onClick={() => handleDelete(ann.id)}
                                         className="p-2 text-slate-100 hover:bg-rose-50 hover:text-rose-500 rounded-xl transition-all"
