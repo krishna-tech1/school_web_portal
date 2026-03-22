@@ -22,6 +22,7 @@ import FeeStructure from '../pages/FeeStructure';
 import PendingFees from '../pages/PendingFees';
 import Inventory from '../pages/Inventory';
 import Reports from '../pages/Reports';
+import SystemConfig from '../pages/SystemConfig';
 
 // Placeholder pages
 const Calendar = () => (
@@ -67,6 +68,7 @@ const AppRoutes = () => {
                                     <Route path="/inventory" element={<Inventory />} />
                                     <Route path="/reports" element={<Reports />} />
                                     <Route path="/calendar" element={<Calendar />} />
+                                    <Route path="/system-config" element={<SystemConfig />} />
                                 </Routes>
                             </MainLayout>
                         </ProtectedRoute>
