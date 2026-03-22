@@ -10,6 +10,7 @@ const AddStudent = () => {
     const [error, setError] = useState('');
     
     const [formData, setFormData] = useState({
+        studentId: '',
         firstName: '',
         lastName: '',
         dob: '',
@@ -58,7 +59,7 @@ const AddStudent = () => {
     };
 
     const handleSave = async () => {
-        const mandatoryFields = ['firstName', 'lastName', 'dob', 'gender', 'class', 'section', 'rollNumber', 'parentName', 'relation', 'phoneNumber', 'email', 'photo_url'];
+        const mandatoryFields = ['studentId', 'firstName', 'lastName', 'dob', 'gender', 'class', 'section', 'rollNumber', 'parentName', 'relation', 'phoneNumber', 'email', 'photo_url'];
         const missing = mandatoryFields.filter(f => !formData[f]);
 
         if (missing.length > 0) {
@@ -74,7 +75,8 @@ const AddStudent = () => {
             navigate('/students');
         } catch (err) {
             console.error(err);
-            setError('Failed to save student. Please try again.');
+            const errMsg = err.response?.data?.message || 'Failed to save student. Please try again.';
+            setError(errMsg);
         } finally {
             setSubmitting(false);
         }
@@ -232,7 +234,22 @@ const AddStudent = () => {
                         Academic Allocation
                     </h2>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-500 mb-3 uppercase tracking-widest flex justify-between items-center">
+                                Student ID <span className="text-rose-500">*</span>
+                                <span className="text-[10px] lowercase font-medium opacity-60">Max 15</span>
+                            </label>
+                            <input
+                                type="text"
+                                name="studentId"
+                                value={formData.studentId}
+                                onChange={handleChange}
+                                maxLength={15}
+                                placeholder="STU001..."
+                                className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.25rem] text-slate-900 font-bold placeholder-slate-400 focus:border-[#0047AB] focus:bg-white transition-all outline-none shadow-sm"
+                            />
+                        </div>
                         <div>
                             <label className="block text-sm font-bold text-slate-500 mb-3 uppercase tracking-widest">Class <span className="text-rose-500">*</span></label>
                             <div className="relative">
@@ -268,15 +285,15 @@ const AddStudent = () => {
                                 Roll Number <span className="text-rose-500">*</span>
                                 <span className="text-[10px] lowercase font-medium opacity-60">Max 10</span>
                             </label>
-                                <input
-                                    type="text"
-                                    name="rollNumber"
-                                    value={formData.rollNumber}
-                                    onChange={handleChange}
-                                    maxLength={10}
-                                    placeholder="eg: 25"
-                                    className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.25rem] text-slate-900 font-bold placeholder-slate-400 focus:border-[#0047AB] focus:bg-white transition-all outline-none shadow-sm"
-                                />
+                            <input
+                                type="text"
+                                name="rollNumber"
+                                value={formData.rollNumber}
+                                onChange={handleChange}
+                                maxLength={10}
+                                placeholder="eg: 25"
+                                className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.25rem] text-slate-900 font-bold placeholder-slate-400 focus:border-[#0047AB] focus:bg-white transition-all outline-none shadow-sm"
+                            />
                         </div>
                     </div>
                 </Card>

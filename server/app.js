@@ -156,17 +156,27 @@ router.get('/students/:studentId', async (req, res) => {
     }
 });
 
-// Create Student
 router.post('/students', async (req, res) => {
     try {
         const { 
-            firstName, lastName, dob, gender, address, 
+            studentId, firstName, lastName, dob, gender, address, 
             class: className, section, rollNumber, 
             parentName, relation, phoneNumber, email, photo_url 
         } = req.body;
 
-        // Generate a unique timestamp-based Student ID
-        const studentId = `STU${Date.now()}${Math.floor(Math.random() * 100).toString().padStart(2, '0')}`;
+        if (!studentId) {
+            return res.status(400).json({ message: 'Student ID is mandatory.' });
+        }
+
+        if (studentId.length > 15) {
+            return res.status(400).json({ message: 'Student ID cannot exceed 15 characters.' });
+        }
+
+        // Check for duplicate Student ID
+        const existing = await db.query('SELECT "studentId" FROM students WHERE "studentId" = $1', [studentId]);
+        if (existing.rows.length > 0) {
+            return res.status(400).json({ message: `Student ID "${studentId}" is already assigned to another student.` });
+        }
 
         // Basic server-side length validation
         if (firstName?.length > 32 || lastName?.length > 32 || parentName?.length > 32 || phoneNumber?.length > 15 || email?.length > 50 || address?.length > 350) {
