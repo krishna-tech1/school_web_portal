@@ -62,10 +62,12 @@ const Announcements = () => {
     const handleDelete = async (id) => {
         if (!window.confirm('Delete this announcement permanently?')) return;
         try {
-            await axios.delete(`${API_URL}/api/portal/announcements/${id}`);
+            await axios.delete(`${API_URL}/api/portal/announcements/${id}`, {
+                params: { userId: 'admin' }
+            });
             fetchAnnouncements();
         } catch (err) {
-            alert('Failed to delete');
+            alert(err.response?.data?.message || 'Failed to delete');
         }
     };
 
@@ -116,24 +118,26 @@ const Announcements = () => {
 
                         {/* 2nd Subject */}
                         <div className="space-y-1.5">
-                            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">2. Subject Headline:</label>
+                            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">2. Subject Headline ({title.length}/25):</label>
                             <input 
                                 type="text"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
-                                placeholder="e.g. Annual Sports Day"
+                                maxLength={25}
+                                placeholder="Max 25 characters"
                                 className="w-full bg-slate-50 border-2 border-transparent focus:border-[#0047AB] focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none"
                             />
                         </div>
 
                         {/* 3rd Description */}
                         <div className="space-y-1.5">
-                            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">3. Message Body:</label>
+                            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">3. Message Body ({message.length}/75):</label>
                             <textarea 
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
-                                placeholder="Enter detailed description..."
-                                rows="5"
+                                maxLength={75}
+                                placeholder="Max 75 characters"
+                                rows="3"
                                 className="w-full bg-slate-50 border-2 border-transparent focus:border-[#0047AB] focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none resize-none text-sm"
                             ></textarea>
                         </div>
@@ -198,12 +202,14 @@ const Announcements = () => {
                                         <p className="text-[12px] font-bold text-slate-300">Created: {new Date(ann.created_at).toLocaleDateString()}</p>
                                     </div>
                                 </div>
-                                <button 
-                                    onClick={() => handleDelete(ann.id)}
-                                    className="p-2 text-slate-100 hover:bg-rose-50 hover:text-rose-500 rounded-xl transition-all"
-                                >
-                                    <FiTrash2 size={18} />
-                                </button>
+                                {ann.sender_id === 'admin' && (
+                                    <button 
+                                        onClick={() => handleDelete(ann.id)}
+                                        className="p-2 text-slate-100 hover:bg-rose-50 hover:text-rose-500 rounded-xl transition-all"
+                                    >
+                                        <FiTrash2 size={18} />
+                                    </button>
+                                )}
                             </div>
 
                             <p className="inline-block px-3 py-1 rounded-full bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
