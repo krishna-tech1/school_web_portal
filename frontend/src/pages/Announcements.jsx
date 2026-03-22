@@ -207,7 +207,7 @@ const Announcements = () => {
                                 {(ann.sender_id === currentUserId || ann.sender_role === 'admin') && (
                                     <button 
                                         onClick={() => handleDelete(ann.id)}
-                                        className="p-2 text-slate-100 hover:bg-rose-50 hover:text-rose-500 rounded-xl transition-all"
+                                        className="p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-500 rounded-xl transition-all"
                                     >
                                         <FiTrash2 size={18} />
                                     </button>
