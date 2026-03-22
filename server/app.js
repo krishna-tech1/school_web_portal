@@ -288,10 +288,15 @@ router.post('/students/promote', async (req, res) => {
 // Staff API
 router.get('/staff', async (req, res) => {
     try {
-        const result = await db.query('SELECT * FROM staff ORDER BY id ASC');
+        const result = await db.query('SELECT * FROM staff ORDER BY id DESC');
+        console.log('--- DEBUG: FETCHED ---', result.rows.length, 'records');
+        if (result.rows.length > 0) {
+            console.log('Record 0 keys:', Object.keys(result.rows[0]));
+        }
         res.json(result.rows);
     } catch (err) {
-        res.status(500).json({ message: 'Error fetching staff' });
+        console.error('Fetch staff error:', err);
+        res.status(500).json({ message: 'Error fetching staff', error: err.message });
     }
 });
 
@@ -411,7 +416,16 @@ router.post('/staff', async (req, res) => {
         `;
         // Generate a cleaner, unique Smart ID (STF-XXXXXX)
         const staffIdRaw = employeeId || `STF-${Math.floor(100000 + Math.random() * 900000)}`;
-        const subjectsStr = Array.isArray(subjects) ? JSON.stringify(subjects.filter(s => s.class || s.subject)) : '[]';
+        // Normalize subjects (can be array or string)
+        let normalizedSubjects = [];
+        try {
+            normalizedSubjects = typeof subjects === 'string' ? JSON.parse(subjects) : (Array.isArray(subjects) ? subjects : []);
+        } catch (e) {
+            normalizedSubjects = [];
+        }
+
+        const subjectsStr = JSON.stringify(normalizedSubjects.filter(s => s.class || s.subject));
+
         const values = [
             firstName, lastName, email, phone, dob || null, gender, address, city, state, zipCode, 
             employeeId, staffIdRaw, req.body.staffType || 'Teaching', photo_url,
@@ -499,7 +513,7 @@ router.put('/staff/:id', async (req, res) => {
                 staff_type = $13, photo_url = $14, class_teacher = $15, subjects = $16
             WHERE id = $17 RETURNING *
         `;
-        const subjectsStr = Array.isArray(subjects) ? JSON.stringify(subjects.filter(s => s.class || s.subject)) : '[]';
+        const subjectsStr = Array.isArray(parsedSubjects) ? JSON.stringify(parsedSubjects.filter(s => s.class || s.subject)) : '[]';
         const values = [
             firstName, lastName, email, phone, dob || null, gender, address, city, state, zipCode, 
             employeeId, employeeId, req.body.staffType, 
