@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { NavLink } from 'react-router-dom';
-import { FiGrid, FiCheckSquare, FiCreditCard, FiBox, FiFileText, FiX, FiSettings } from 'react-icons/fi';
+import { FiGrid, FiCheckSquare, FiCreditCard, FiBox, FiFileText, FiX, FiSettings, FiSend } from 'react-icons/fi';
 import { FaGraduationCap, FaChalkboardTeacher } from 'react-icons/fa';
 import { GoTriangleDown } from 'react-icons/go';
 
