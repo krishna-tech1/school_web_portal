@@ -514,6 +514,10 @@ router.put('/staff/:id', async (req, res) => {
             WHERE id = $17 RETURNING *
         `;
         const subjectsStr = Array.isArray(parsedSubjects) ? JSON.stringify(parsedSubjects.filter(s => s.class || s.subject)) : '[]';
+        
+        // Ensure we have a staffId value (fallback to employeeId or existing if needed)
+        const staffIdRaw = req.body.staffId || employeeId; 
+
         const values = [
             firstName, lastName, email, phone, dob || null, gender, address, city, state, zipCode, 
             employeeId, staffIdRaw, req.body.staffType || 'Teaching', photo_url,
