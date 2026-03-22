@@ -62,6 +62,7 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen, collapsed }) => {
             ]
         },
         { path: '/inventory', icon: FiBox, label: 'Inventory', hasSub: true, roles: ['Administrator', 'InventoryManager'] },
+        { path: '/announcements', icon: FiSend, label: 'Announcements', hasSub: false, roles: ['Administrator'] },
         { path: '/reports', icon: FiFileText, label: 'Reports', hasSub: false, roles: ['Administrator'] },
         { path: '/system-config', icon: FiSettings, label: 'System Config', hasSub: false, roles: ['Administrator'] },
     ];

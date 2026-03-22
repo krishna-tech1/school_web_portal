@@ -23,6 +23,7 @@ import PendingFees from '../pages/PendingFees';
 import Inventory from '../pages/Inventory';
 import Reports from '../pages/Reports';
 import SystemConfig from '../pages/SystemConfig';
+import Announcements from '../pages/Announcements';
 
 // Placeholder pages
 const Calendar = () => (
@@ -61,6 +62,7 @@ const AppRoutes = () => {
                                     <Route path="/staff/add" element={<AddStaff />} />
                                     <Route path="/staff/edit/:id" element={<EditStaff />} />
                                     <Route path="/staff/leave-tracking" element={<LeaveTracking />} />
+                                    <Route path="/announcements" element={<Announcements />} />
                                     <Route path="/attendance" element={<Attendance />} />
                                     <Route path="/attendance/teacher" element={<TeacherAttendance />} />
                                     <Route path="/fees/structure" element={<FeeStructure />} />
