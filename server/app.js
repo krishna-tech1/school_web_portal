@@ -515,32 +515,42 @@ router.put('/staff/:id', async (req, res) => {
         `;
         const subjectsStr = Array.isArray(parsedSubjects) ? JSON.stringify(parsedSubjects.filter(s => s.class || s.subject)) : '[]';
         
-        // Ensure we have a staffId value (fallback to employeeId or existing if needed)
+        // Ensure we have a staffId value
         const staffIdRaw = req.body.staffId || employeeId; 
+
+        // Use numeric ID if possible
+        const targetId = !isNaN(id) ? parseInt(id) : id;
 
         const values = [
             firstName, lastName, email, phone, dob || null, gender, address, city, state, zipCode, 
             employeeId, staffIdRaw, req.body.staffType || 'Teaching', photo_url,
-            classTeacher, subjectsStr, id
+            classTeacher, subjectsStr, targetId
         ];
         
-        console.log('--- FINAL SAVING: subjects_list length =', subjectsStr.length, '---');
+        console.log(`--- UPDATING STAFF ID: ${targetId} ---`);
         const result = await db.query(query, values);
+        
         if (result.rows.length === 0) {
             return res.status(404).json({ message: 'Staff member not found' });
         }
         res.json(result.rows[0]);
     } catch (err) {
-        console.error('Update staff error:', err);
+        console.error('Update staff error:', {
+            message: err.message,
+            code: err.code,
+            detail: err.detail,
+            stack: err.stack
+        });
+        
         if (err.code === '23505') {
             if (err.constraint === 'staff_email_key') {
-                return res.status(400).json({ message: 'Email address already exists. Please use a unique email.' });
+                return res.status(400).json({ message: 'Email address already exists.' });
             }
             if (err.constraint === 'staff_employeeId_key' || err.message.includes('employeeId')) {
                 return res.status(400).json({ message: 'Employee ID already exists.' });
             }
         }
-        res.status(500).json({ message: 'Error updating staff member' });
+        res.status(500).json({ message: 'Server error updating staff: ' + err.message });
     }
 });
 
