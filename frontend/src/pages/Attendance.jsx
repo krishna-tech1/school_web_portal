@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { FiUsers, FiCalendar, FiUserX, FiChevronDown, FiDownload } from 'react-icons/fi';
 import { Card, Table } from '../components/ui';
+import { attendanceAPI } from '../services/api';
 
 const Attendance = () => {
     const [selectedClass, setSelectedClass] = useState('All Class');
     const [selectedSection, setSelectedSection] = useState('All Section');
-    const [selectedMonth, setSelectedMonth] = useState('December, 2025');
+    const [selectedMonth, setSelectedMonth] = useState(`${new Date().toLocaleString('en-US', { month: 'long' })}, ${new Date().getFullYear()}`);
+
+    const [loading, setLoading] = useState(true);
+    const [attendanceData, setAttendanceData] = useState([]);
+    const [dashboardStats, setDashboardStats] = useState({ today: {}, monthly: {} });
 
     // Dropdown visibility states
     const [isClassOpen, setIsClassOpen] = useState(false);
@@ -23,7 +28,36 @@ const Attendance = () => {
         return 'th';
     }
 
-    // Close dropdowns on outside click
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const [monthName, year] = selectedMonth.split(', ');
+            const monthMap = { 
+                January: 1, February: 2, March: 3, April: 4, May: 5, June: 6,
+                July: 7, August: 8, September: 9, October: 10, November: 11, December: 12
+            };
+            
+            const filters = {
+                className: selectedClass,
+                section: selectedSection,
+                month: monthMap[monthName.trim()],
+                year: year.trim()
+            };
+
+            const res = await attendanceAPI.getSummary(filters);
+            setAttendanceData(res.data.students);
+            setDashboardStats({ today: res.data.today, monthly: res.data.monthly });
+        } catch (err) {
+            console.error('Attendance fetch error:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, [selectedClass, selectedSection, selectedMonth]);
+
     useEffect(() => {
         const handleClickOutside = () => {
             setIsClassOpen(false);
@@ -34,32 +68,13 @@ const Attendance = () => {
         return () => window.removeEventListener('click', handleClickOutside);
     }, []);
 
-    const stats = [
-        {
-            label: "Today's Student Attendance",
-            value: "95%",
-            subValue: "1,186 / 1,248 present",
-            icon: FiUsers,
-            iconBg: "bg-[#7c3aed]", // Purple
-            textColor: "text-slate-900"
-        },
-        {
-            label: "Monthly Average",
-            value: "92%",
-            subValue: "Students this month",
-            icon: FiCalendar,
-            iconBg: "bg-[#ca8a04]", // Gold/Yellow
-            textColor: "text-slate-900"
-        },
-        {
-            label: "Absentees Today",
-            value: "64",
-            subValue: "Students",
-            icon: FiUserX,
-            iconBg: "bg-[#dc2626]", // Red
-            textColor: "text-slate-900"
-        }
-    ];
+    const todayPercent = dashboardStats.today?.total > 0 
+        ? ((dashboardStats.today.present / dashboardStats.today.total) * 100).toFixed(0) 
+        : '0';
+
+    const monthlyPercent = dashboardStats.monthly?.total > 0
+        ? ((dashboardStats.monthly.present / dashboardStats.monthly.total) * 100).toFixed(0)
+        : '0';
 
     const columns = [
         { header: 'Student ID', accessor: 'studentId' },
@@ -78,14 +93,6 @@ const Attendance = () => {
         },
     ];
 
-    const attendanceData = [
-        { studentId: '001', name: 'Rahul Sharma', totalDays: '22', present: '20', absent: '2', percentage: '90.9' },
-        { studentId: '002', name: 'Priya Verma', totalDays: '22', present: '21', absent: '1', percentage: '95.5' },
-        { studentId: '003', name: 'John Doe', totalDays: '22', present: '20', absent: '2', percentage: '90.9' },
-        { studentId: '004', name: 'Anita Roy', totalDays: '22', present: '19', absent: '3', percentage: '86.4' },
-        { studentId: '005', name: 'Sahil Varma', totalDays: '22', present: '20', absent: '2', percentage: '90.9' },
-    ];
-
     return (
         <div className="p-4 md:p-10 bg-[#FBFBFE] min-h-screen animate-in fade-in duration-1000">
             {/* Breadcrumbs */}
@@ -99,7 +106,7 @@ const Attendance = () => {
                     <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight">Student Attendance</h1>
                     <div className="flex items-center gap-3 mt-3">
                         <span className="h-1.5 w-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
-                        <p className="text-[#0047AB] font-black text-[13px] uppercase tracking-widest">Real-time tracking enabled</p>
+                        <p className="text-[#0047AB] font-black text-[13px] uppercase tracking-widest">{loading ? 'Updating Summary...' : 'Real-time tracking enabled'}</p>
                     </div>
                 </div>
                 <button className="w-full md:w-auto flex items-center justify-center gap-3 bg-slate-900 hover:bg-black text-white px-10 py-4 rounded-[1.5rem] font-black shadow-xl shadow-slate-200/50 transition-all hover:-translate-y-1 active:scale-95 text-xs uppercase tracking-widest leading-none">
@@ -111,9 +118,9 @@ const Attendance = () => {
             {/* Premium Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                 {[
-                    { label: "Today's Attendance", value: '95%', sub: '1,186 / 1,248 present', icon: FiUsers, gradient: 'from-violet-500 to-purple-600', iconBg: 'bg-violet-500/10', iconColor: 'text-violet-600' },
-                    { label: 'Monthly Average', value: '92%', sub: 'Students this month', icon: FiCalendar, gradient: 'from-amber-400 to-orange-500', iconBg: 'bg-amber-500/10', iconColor: 'text-amber-600' },
-                    { label: 'Absentees Today', value: '64', sub: 'Students absent', icon: FiUserX, gradient: 'from-rose-500 to-red-600', iconBg: 'bg-rose-500/10', iconColor: 'text-rose-600' },
+                    { label: "Today's Attendance", value: `${todayPercent}%`, sub: `${dashboardStats.today?.present || 0} / ${dashboardStats.today?.total || 0} present`, icon: FiUsers, gradient: 'from-violet-500 to-purple-600', iconBg: 'bg-violet-500/10', iconColor: 'text-violet-600' },
+                    { label: 'Monthly Average', value: `${monthlyPercent}%`, sub: `Overall for ${selectedMonth.split(',')[0]}`, icon: FiCalendar, gradient: 'from-amber-400 to-orange-500', iconBg: 'bg-amber-500/10', iconColor: 'text-amber-600' },
+                    { label: 'Absentees Today', value: `${dashboardStats.today?.absent || 0}`, sub: 'Students absent today', icon: FiUserX, gradient: 'from-rose-500 to-red-600', iconBg: 'bg-rose-500/10', iconColor: 'text-rose-600' },
                 ].map((stat, index) => {
                     const Icon = stat.icon;
                     return (
@@ -259,6 +266,7 @@ const Attendance = () => {
                             columns={columns}
                             data={attendanceData}
                             className="border-none"
+                            loading={loading}
                         />
                     </div>
                 </div>

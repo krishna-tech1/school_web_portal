@@ -38,7 +38,8 @@ apiClient.interceptors.response.use(
 
 // Dashboard Stats
 export const dashboardAPI = {
-    getStats: () => apiClient.get('dashboard/stats'),
+    getStats: () => apiClient.get('/dashboard/stats'),
+    getAttendanceChart: (type) => apiClient.get('/dashboard/attendance-chart', { params: { type } }),
 };
 
 // Student API
@@ -87,9 +88,9 @@ export const staffAPI = {
 
 // Attendance API
 export const attendanceAPI = {
-    getAll: (params) => apiClient.get('/attendance', { params }),
-    markAttendance: (data) => apiClient.post('/attendance', data),
-    updateAttendance: (id, data) => apiClient.put(`/attendance/${id}`, data),
+    getAll: () => apiClient.get('/attendance'),
+    getSummary: (filters) => apiClient.get('/attendance/summary', { params: filters }),
+    update: (id, data) => apiClient.put(`/attendance/${id}`, data),
 };
 
 // Fee API

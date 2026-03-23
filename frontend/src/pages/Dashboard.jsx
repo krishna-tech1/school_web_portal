@@ -68,20 +68,26 @@ const Dashboard = () => {
         lowStockCount: 0
     });
     const [loading, setLoading] = React.useState(true);
+    const [realChartData, setRealChartData] = React.useState([]);
+    const [chartType, setChartType] = React.useState('Students');
 
     React.useEffect(() => {
-        const fetchStats = async () => {
+        const fetchDashboardData = async () => {
             try {
-                const res = await dashboardAPI.getStats();
-                setStatsData(res.data);
+                const [statsRes, chartRes] = await Promise.all([
+                    dashboardAPI.getStats(),
+                    dashboardAPI.getAttendanceChart(chartType)
+                ]);
+                setStatsData(statsRes.data);
+                setRealChartData(chartRes.data);
             } catch (err) {
-                console.error('Failed to fetch stats:', err);
+                console.error('Failed to fetch dashboard data:', err);
             } finally {
                 setLoading(false);
             }
         };
-        fetchStats();
-    }, []);
+        fetchDashboardData();
+    }, [chartType]);
 
     const stats = [
         {
@@ -191,9 +197,13 @@ const Dashboard = () => {
 
                         <div className="relative flex items-center group">
                             <div className="absolute left-6 text-indigo-600 font-black text-xs uppercase tracking-widest pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity">View:</div>
-                            <select className="bg-slate-50 border-2 border-slate-50 rounded-2xl pl-20 pr-14 py-4 text-[15px] font-black text-slate-900 outline-none appearance-none min-w-[220px] cursor-pointer hover:bg-white hover:border-indigo-100 transition-all shadow-sm focus:ring-4 focus:ring-indigo-50">
-                                <option>Students</option>
-                                <option>Staff</option>
+                            <select 
+                                value={chartType}
+                                onChange={(e) => setChartType(e.target.value)}
+                                className="bg-slate-50 border-2 border-slate-50 rounded-2xl pl-20 pr-14 py-4 text-[15px] font-black text-slate-900 outline-none appearance-none min-w-[220px] cursor-pointer hover:bg-white hover:border-indigo-100 transition-all shadow-sm focus:ring-4 focus:ring-indigo-50"
+                            >
+                                <option value="Students">Students</option>
+                                <option value="Staff">Staff</option>
                             </select>
                             <FiChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-indigo-600 pointer-events-none group-hover:translate-y-[-40%] transition-transform" size={20} />
                         </div>
@@ -201,7 +211,7 @@ const Dashboard = () => {
 
                     <div className="h-[450px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 30 }}>
+                            <AreaChart data={realChartData.length > 0 ? realChartData : chartData} margin={{ top: 10, right: 30, left: 0, bottom: 30 }}>
                                 <defs>
                                     <linearGradient id="colorPresent" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#10B981" stopOpacity={0.15} />

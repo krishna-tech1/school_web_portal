@@ -94,6 +94,18 @@ db.query("ALTER TABLE staff ADD COLUMN IF NOT EXISTS staff_type VARCHAR(20) DEFA
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     `))
+    .then(() => db.query(`
+        CREATE TABLE IF NOT EXISTS staff_attendance (
+            id SERIAL PRIMARY KEY,
+            "staffId" VARCHAR(50) NOT NULL,
+            date DATE NOT NULL,
+            status VARCHAR(20) NOT NULL,
+            remarks TEXT,
+            "submitted_by" VARCHAR(50),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE("staffId", date)
+        )
+    `))
     .then(() => console.log('✅ Database schema verified'))
     .catch(err => console.error('❌ Schema migration failed:', err));
 
@@ -813,16 +825,142 @@ router.get('/dashboard/stats', async (req, res) => {
             WHERE "admissionDate" >= DATE_TRUNC('month', CURRENT_DATE)
         `);
 
+        // Real Low Stock Count
+        const lowStockRaw = await db.query('SELECT COUNT(*) FROM inventory WHERE quantity <= min_quantity');
+
         res.json({
             totalStudents: parseInt(studentCountRaw.rows[0].count),
             totalStaff: parseInt(staffCountRaw.rows[0].count),
             totalPendingFees: parseFloat(feesRaw.rows[0].total || 0),
             newStudentsThisMonth: parseInt(newStudentsRaw.rows[0].count),
-            lowStockCount: 0 // Placeholder for inventory phase
+            lowStockCount: parseInt(lowStockRaw.rows[0].count)
         });
     } catch (err) {
         console.error('Stats error:', err);
         res.status(500).json({ message: 'Error fetching stats' });
+    }
+});
+
+router.get('/dashboard/attendance-chart', async (req, res) => {
+    try {
+        const { type } = req.query;
+        const tableName = type === 'Staff' ? 'staff_attendance' : 'student_attendance';
+        const query = `
+            SELECT 
+                TO_CHAR(date, 'Mon') as name,
+                COUNT(*) FILTER (WHERE status = 'Present') as present,
+                COUNT(*) FILTER (WHERE status = 'Absent') as absent
+            FROM ${tableName}
+            WHERE date >= CURRENT_DATE - INTERVAL '12 months'
+            GROUP BY TO_CHAR(date, 'Mon'), DATE_TRUNC('month', date)
+            ORDER BY DATE_TRUNC('month', date)
+        `;
+        const result = await db.query(query);
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Attendance chart error:', err);
+        res.status(500).json({ message: 'Error fetching chart data' });
+    }
+});
+
+router.get('/attendance/staff-summary', async (req, res) => {
+    try {
+        const { date } = req.query;
+        const query = `
+            SELECT 
+                s."staffId", 
+                s.name, 
+                s.department as dept,
+                COALESCE(a.status, 'Not Marked') as status,
+                a.remarks
+            FROM staff s
+            LEFT JOIN staff_attendance a ON s."staffId" = a."staffId" AND a.date = $1
+            ORDER BY s.name ASC
+        `;
+        const result = await db.query(query, [date || new Date().toISOString().split('T')[0]]);
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Staff summary error:', err);
+        res.status(500).json({ message: 'Error fetching staff summary' });
+    }
+});
+
+router.get('/attendance/summary', async (req, res) => {
+    try {
+        const { className, section, month, year } = req.query;
+        
+        // 1. School-wide Stats for TODAY
+        const todayStats = await db.query(`
+            SELECT 
+                COUNT(*) as total,
+                COUNT(*) FILTER (WHERE status = 'Present') as present,
+                COUNT(*) FILTER (WHERE status = 'Absent') as absent
+            FROM student_attendance 
+            WHERE date = CURRENT_DATE
+        `);
+
+        // 2. Monthly School-wide Average
+        const monthStats = await db.query(`
+            SELECT 
+                COUNT(*) as total,
+                COUNT(*) FILTER (WHERE status = 'Present') as present
+            FROM student_attendance 
+            WHERE EXTRACT(MONTH FROM date) = EXTRACT(MONTH FROM CURRENT_DATE)
+            AND EXTRACT(YEAR FROM date) = EXTRACT(YEAR FROM CURRENT_DATE)
+        `);
+
+        // 3. Detailed Student List for selected filters
+        let studentQuery = `
+            SELECT 
+                s."studentId", 
+                s."firstName" || ' ' || s."lastName" as name,
+                COUNT(a.id) as "totalDays",
+                COUNT(a.id) FILTER (WHERE a.status = 'Present') as present,
+                COUNT(a.id) FILTER (WHERE a.status = 'Absent') as absent
+            FROM students s
+            LEFT JOIN student_attendance a ON s."studentId" = a."studentId"
+        `;
+        
+        const conditions = [];
+        const params = [];
+        
+        if (className && className !== 'All Class') {
+            params.push(className);
+            conditions.push(`s.class = $${params.length}`);
+        }
+        if (section && section !== 'All Section') {
+            params.push(section);
+            conditions.push(`s.section = $${params.length}`);
+        }
+        if (month) {
+            params.push(month);
+            conditions.push(`EXTRACT(MONTH FROM a.date) = $${params.length}`);
+        }
+        if (year) {
+            params.push(year);
+            conditions.push(`EXTRACT(YEAR FROM a.date) = $${params.length}`);
+        }
+
+        if (conditions.length > 0) {
+            studentQuery += ' WHERE ' + conditions.join(' AND ');
+        }
+        
+        studentQuery += ' GROUP BY s."studentId", s."firstName", s."lastName" ORDER BY s."firstName" ASC';
+        
+        const details = await db.query(studentQuery, params);
+        
+        res.json({
+            today: todayStats.rows[0],
+            monthly: monthStats.rows[0],
+            students: details.rows.map(s => ({
+                ...s,
+                percentage: s.totalDays > 0 ? ((s.present / s.totalDays) * 100).toFixed(1) : '0.0'
+            }))
+        });
+
+    } catch (err) {
+        console.error('Attendance summary error:', err);
+        res.status(500).json({ message: 'Error fetching attendance summary' });
     }
 });
 

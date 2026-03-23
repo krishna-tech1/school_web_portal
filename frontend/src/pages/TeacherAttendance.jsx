@@ -5,18 +5,28 @@ import { Card, Table } from '../components/ui';
 const TeacherAttendance = () => {
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [search, setSearch] = useState('');
+    const [attendanceData, setAttendanceData] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const attendanceData = [
-        { id: 1, name: 'Dr. Amitabh Bachchan', empId: 'EMP001', dept: 'Administration', inTime: '08:15 AM', outTime: '04:30 PM', status: 'Present', avatar: 'AB' },
-        { id: 2, name: 'Mrs. Priya Sharma', empId: 'EMP002', dept: 'Academic', inTime: '08:00 AM', outTime: '03:45 PM', status: 'Present', avatar: 'PS' },
-        { id: 3, name: 'Mr. Robert D\'Souza', empId: 'EMP005', dept: 'Physical Education', inTime: '-', outTime: '-', status: 'Absent', avatar: 'RD' },
-        { id: 4, name: 'Ms. Anita Roy', empId: 'EMP009', dept: 'Mathematics', inTime: '08:45 AM', outTime: '-', status: 'Late', avatar: 'AR' },
-        { id: 5, name: 'Mr. Sahil Varma', empId: 'EMP012', dept: 'Science', inTime: '08:10 AM', outTime: '04:00 PM', status: 'Present', avatar: 'SV' },
-    ];
+    const fetchStaffAttendance = async () => {
+        try {
+            setLoading(true);
+            const res = await attendanceAPI.getStaffSummary(date);
+            setAttendanceData(res.data);
+        } catch (err) {
+            console.error('Failed to fetch staff attendance:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    React.useEffect(() => {
+        fetchStaffAttendance();
+    }, [date]);
 
     const filteredData = attendanceData.filter(staff =>
-        staff.name.toLowerCase().includes(search.toLowerCase()) ||
-        staff.empId.toLowerCase().includes(search.toLowerCase())
+        (staff.name?.toLowerCase() || '').includes(search.toLowerCase()) ||
+        (staff.staffId?.toLowerCase() || '').includes(search.toLowerCase())
     );
 
     const columns = [
@@ -25,11 +35,11 @@ const TeacherAttendance = () => {
             render: (row) => (
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-xs ring-2 ring-white shadow-sm">
-                        {row.avatar}
+                        {row.name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                     </div>
                     <div>
                         <p className="font-bold text-slate-900">{row.name}</p>
-                        <p className="text-xs font-bold text-slate-400">{row.empId}</p>
+                        <p className="text-xs font-bold text-slate-400">{row.staffId}</p>
                     </div>
                 </div>
             ),
@@ -44,7 +54,7 @@ const TeacherAttendance = () => {
             render: (row) => (
                 <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg w-fit ${row.status === 'Present' ? 'bg-green-50 text-green-600' :
                     row.status === 'Absent' ? 'bg-red-50 text-red-600' :
-                        'bg-amber-50 text-amber-600'
+                    row.status === 'Late' ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-400'
                     }`}>
                     {row.status === 'Present' && <FiCheckCircle size={14} />}
                     {row.status === 'Absent' && <FiXCircle size={14} />}
@@ -134,13 +144,12 @@ const TeacherAttendance = () => {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto rounded-2xl border border-slate-50">
                     <Table
                         columns={columns}
                         data={filteredData}
                         className="border-none"
+                        loading={loading}
                     />
-                </div>
             </div>
         </div>
     );
