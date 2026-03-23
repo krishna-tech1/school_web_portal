@@ -964,6 +964,76 @@ router.get('/attendance/summary', async (req, res) => {
     }
 });
 
+router.get('/reports/summary', async (req, res) => {
+    try {
+        const financialQuery = `
+            SELECT 
+                SUM("totalAmount" - "pendingFee") as collected,
+                SUM("pendingFee") as outstanding
+            FROM students
+        `;
+        const attendanceQuery = `
+            SELECT 
+                COUNT(*) FILTER (WHERE status = 'Present') as present,
+                COUNT(*) as total
+            FROM student_attendance
+            WHERE EXTRACT(MONTH FROM date) = EXTRACT(MONTH FROM CURRENT_DATE)
+            AND EXTRACT(YEAR FROM date) = EXTRACT(YEAR FROM CURRENT_DATE)
+        `;
+        const inventoryQuery = `
+            SELECT COUNT(*) as low_stock 
+            FROM inventory 
+            WHERE quantity <= min_quantity
+        `;
+
+        const [fin, att, inv] = await Promise.all([
+            db.query(financialQuery),
+            db.query(attendanceQuery),
+            db.query(inventoryQuery)
+        ]);
+
+        const attPercent = att.rows[0].total > 0 
+            ? ((att.rows[0].present / att.rows[0].total) * 100).toFixed(1)
+            : '0.0';
+
+        res.json({
+            financial: {
+                collected: parseFloat(fin.rows[0].collected || 0),
+                outstanding: parseFloat(fin.rows[0].outstanding || 0)
+            },
+            attendance: {
+                monthlyPercent: attPercent + '%'
+            },
+            inventory: {
+                lowStockCount: parseInt(inv.rows[0].low_stock || 0)
+            }
+        });
+    } catch (err) {
+        console.error('Reports summary error:', err);
+        res.status(500).json({ message: 'Error fetching reports summary' });
+    }
+});
+
+router.get('/reports/pending-list', async (req, res) => {
+    try {
+        const { className } = req.query;
+        let query = 'SELECT "studentId", "firstName", "lastName", class, section, "pendingFee" FROM students WHERE "pendingFee" > 0';
+        let params = [];
+
+        if (className && className !== 'All Class') {
+            query += ' AND class = $1';
+            params.push(className);
+        }
+
+        query += ' ORDER BY class, section, "firstName"';
+        const result = await db.query(query, params);
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Pending list error:', err);
+        res.status(500).json({ message: 'Error fetching pending list' });
+    }
+});
+
 // Inventory APIs
 router.get('/inventory', async (req, res) => {
     try {

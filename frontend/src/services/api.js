@@ -36,6 +36,12 @@ apiClient.interceptors.response.use(
     }
 );
 
+// Reports API
+export const reportsAPI = {
+    getSummary: () => apiClient.get('/reports/summary'),
+    getPendingList: (className) => apiClient.get('/reports/pending-list', { params: { className } }),
+};
+
 // Dashboard Stats
 export const dashboardAPI = {
     getStats: () => apiClient.get('/dashboard/stats'),
