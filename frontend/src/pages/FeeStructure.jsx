@@ -171,6 +171,21 @@ const FeeStructure = () => {
                             Save All Changes
                         </button>
                     )}
+                    {!hasChanges && (
+                        <button
+                            onClick={() => {
+                                if (window.confirm('Are you sure you want to reset ALL students\' pending fees to the current structure amounts? All existing payment records for the current term will be overwritten with the full amounts.')) {
+                                    feeAPI.syncStudents().then(() => {
+                                        alert('Successfully updated all students with the latest fee structure.');
+                                    });
+                                }
+                            }}
+                            className="flex items-center justify-center gap-3 bg-slate-900 hover:bg-black text-white px-8 py-4 rounded-[1.5rem] font-black shadow-xl shadow-slate-200/50 transition-all hover:-translate-y-1 active:scale-95 text-sm uppercase tracking-widest"
+                        >
+                            <FiLoader size={20} className={loading ? 'animate-spin' : 'hidden'} />
+                            Sync All Students
+                        </button>
+                    )}
                     <button
                         onClick={() => setIsModalOpen(true)}
                         className="flex items-center justify-center gap-3 bg-[#0047AB] hover:bg-[#003580] text-white px-8 py-4 rounded-[1.5rem] font-black shadow-xl shadow-blue-200/50 transition-all hover:-translate-y-1 active:scale-95 text-sm uppercase tracking-widest"

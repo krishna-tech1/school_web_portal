@@ -718,6 +718,42 @@ router.post('/fees/bulk', async (req, res) => {
     }
 });
 
+router.post('/fees/sync-students', async (req, res) => {
+    try {
+        const query = `
+            UPDATE students
+            SET 
+                "pendingFee" = subquery.total_fees,
+                "feeStatus" = CASE 
+                    WHEN subquery.total_fees > 0 THEN 'Pending'
+                    ELSE 'Paid'
+                END
+            FROM (
+                SELECT class_name, SUM(amount) as total_fees
+                FROM class_fees
+                GROUP BY class_name
+            ) AS subquery
+            WHERE students."class" = subquery.class_name
+        `;
+        await db.query(query);
+        
+        // Handle students whose classes have NO fees defined in class_fees
+        const resetQuery = `
+            UPDATE students
+            SET 
+                "pendingFee" = 0,
+                "feeStatus" = 'Paid'
+            WHERE "class" NOT IN (SELECT class_name FROM class_fees)
+        `;
+        await db.query(resetQuery);
+
+        res.json({ message: 'All students synced with fee structure' });
+    } catch (err) {
+        console.error('Sync fees error:', err);
+        res.status(500).json({ message: 'Error syncing students' });
+    }
+});
+
 router.post('/fees/due-date', async (req, res) => {
     const { feeName, dueDate } = req.body;
     if (!feeName || !dueDate) return res.status(400).json({ message: 'Fee name and due date required' });

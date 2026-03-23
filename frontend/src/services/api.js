@@ -99,6 +99,7 @@ export const feeAPI = {
     save: (data) => apiClient.post('/fees', data), 
     saveBulk: (data) => apiClient.post('/fees/bulk', data),
     saveDueDate: (data) => apiClient.post('/fees/due-date', data), // data: { feeName, dueDate }
+    syncStudents: () => apiClient.post('/fees/sync-students'),
     delete: (className, feeName) => apiClient.delete(`/fees?className=${className}${feeName ? `&feeName=${feeName}` : ''}`),
 };
 
