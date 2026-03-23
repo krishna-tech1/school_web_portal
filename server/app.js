@@ -39,6 +39,20 @@ db.query("ALTER TABLE staff ADD COLUMN IF NOT EXISTS staff_type VARCHAR(20) DEFA
     .then(() => db.query("ALTER TABLE staff ADD COLUMN IF NOT EXISTS class_teacher VARCHAR(20)"))
     .then(() => db.query("ALTER TABLE staff ADD COLUMN IF NOT EXISTS subjects TEXT"))
     .then(() => db.query("ALTER TABLE students ADD COLUMN IF NOT EXISTS photo_url TEXT"))
+    .then(() => db.query("ALTER TABLE students ADD COLUMN IF NOT EXISTS \"feeStatus\" VARCHAR(20) DEFAULT 'Pending'"))
+    .then(() => db.query("ALTER TABLE students ADD COLUMN IF NOT EXISTS \"pendingFee\" NUMERIC(15, 2) DEFAULT 0"))
+    .then(() => db.query(`
+        CREATE TABLE IF NOT EXISTS class_fees (
+            id SERIAL PRIMARY KEY,
+            class_name VARCHAR(50) NOT NULL,
+            fee_name VARCHAR(100) NOT NULL,
+            amount NUMERIC(15, 2) DEFAULT 0,
+            due_date DATE,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(class_name, fee_name)
+        )
+    `))
+    .then(() => db.query("ALTER TABLE class_fees ADD COLUMN IF NOT EXISTS due_date DATE"))
     .then(() => db.query(`
         CREATE TABLE IF NOT EXISTS staff_timetables (
             id SERIAL PRIMARY KEY,
@@ -171,11 +185,10 @@ router.get('/students', async (req, res) => {
             SET "feeStatus" = 'Overdue'
             WHERE "pendingFee" > 0 
             AND "feeStatus" != 'Overdue'
-            AND EXISTS (
-                SELECT 1 FROM class_fees cf 
-                WHERE cf.class_name = students."class" 
-                AND cf.due_date < CURRENT_DATE
-                AND cf.amount > 0
+            AND "class" IN (
+                SELECT class_name FROM class_fees 
+                WHERE due_date < CURRENT_DATE 
+                AND amount > 0
             )
         `;
         await db.query(overdueUpdateQuery);
@@ -186,11 +199,10 @@ router.get('/students', async (req, res) => {
             SET "feeStatus" = 'Pending'
             WHERE "pendingFee" > 0 
             AND "feeStatus" = 'Overdue'
-            AND NOT EXISTS (
-                SELECT 1 FROM class_fees cf 
-                WHERE cf.class_name = students."class" 
-                AND cf.due_date < CURRENT_DATE
-                AND cf.amount > 0
+            AND "class" NOT IN (
+                SELECT class_name FROM class_fees 
+                WHERE due_date < CURRENT_DATE 
+                AND amount > 0
             )
         `;
         await db.query(pendingResetQuery);
