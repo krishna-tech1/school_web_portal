@@ -96,8 +96,9 @@ export const attendanceAPI = {
 export const feeAPI = {
     getAll: () => apiClient.get('/fees'),
     create: (data) => apiClient.post('/fees', data),
-    save: (data) => apiClient.post('/fees', data), // Using the upsert endpoint
+    save: (data) => apiClient.post('/fees', data), 
     saveBulk: (data) => apiClient.post('/fees/bulk', data),
+    saveDueDate: (data) => apiClient.post('/fees/due-date', data), // data: { feeName, dueDate }
     delete: (className, feeName) => apiClient.delete(`/fees?className=${className}${feeName ? `&feeName=${feeName}` : ''}`),
 };
 

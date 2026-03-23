@@ -231,14 +231,40 @@ const FeeStructure = () => {
                             {feeNames.map(fName => (
                                 <tr key={fName} className="hover:bg-slate-50/50 transition-colors group">
                                     <td className="sticky left-0 bg-white z-20 p-6 font-black text-slate-500 text-[11px] uppercase tracking-widest border-r-2 border-slate-50 shadow-[10px_0_15px_-5px_rgba(0,0,0,0.05)] flex justify-between items-center group/row">
-                                        <span className="truncate pr-4">{fName}</span>
-                                        <button 
-                                            onClick={() => deleteFeeType(fName)}
-                                            title={`Delete "${fName}" type`}
-                                            className="opacity-0 group-hover/row:opacity-100 p-2 bg-rose-50 text-rose-400 hover:bg-rose-500 hover:text-white rounded-lg transition-all"
-                                        >
-                                            <FiTrash2 size={14} />
-                                        </button>
+                                        <div className="flex flex-col gap-1 min-w-0">
+                                            <span className="truncate pr-4">{fName}</span>
+                                            {feeData.find(f => f.fee_name === fName)?.due_date && (
+                                                <span className="text-[9px] text-[#0047AB] lowercase">{new Date(feeData.find(f => f.fee_name === fName).due_date).toLocaleDateString()}</span>
+                                            )}
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button 
+                                                onClick={() => {
+                                                    const date = prompt(`Set last date for "${fName}" (YYYY-MM-DD):`, feeData.find(f => f.fee_name === fName)?.due_date?.split('T')[0] || '');
+                                                    if (date) {
+                                                        const selectedDate = new Date(date);
+                                                        const today = new Date();
+                                                        today.setHours(0,0,0,0);
+                                                        if (selectedDate < today) {
+                                                            alert('Admin cannot set past date as last date.');
+                                                            return;
+                                                        }
+                                                        feeAPI.saveDueDate({ feeName: fName, dueDate: date }).then(() => fetchFees());
+                                                    }
+                                                }}
+                                                title="Set Overdue Date"
+                                                className="opacity-0 group-hover/row:opacity-100 p-2 bg-amber-50 text-amber-500 hover:bg-amber-500 hover:text-white rounded-lg transition-all"
+                                            >
+                                                <FiAlertCircle size={14} />
+                                            </button>
+                                            <button 
+                                                onClick={() => deleteFeeType(fName)}
+                                                title={`Delete "${fName}" type`}
+                                                className="opacity-0 group-hover/row:opacity-100 p-2 bg-rose-50 text-rose-400 hover:bg-rose-500 hover:text-white rounded-lg transition-all"
+                                            >
+                                                <FiTrash2 size={14} />
+                                            </button>
+                                        </div>
                                     </td>
                                     {classList.map(c => (
                                         <td key={`${c}-${fName}`} className="p-6 text-center min-w-[150px]">
