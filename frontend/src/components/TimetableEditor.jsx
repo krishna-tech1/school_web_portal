@@ -103,7 +103,7 @@ const TimetableEditor = ({ type, targetId, section, onCancel }) => {
     };
 
     return (
-        <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-300">
+        <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
             {/* Header */}
             <div className="bg-[#0047AB] p-8 text-white flex justify-between items-center">
                 <div className="flex items-center gap-4">
@@ -123,7 +123,7 @@ const TimetableEditor = ({ type, targetId, section, onCancel }) => {
             </div>
 
             {/* Grid Container */}
-            <div className="p-8 overflow-x-auto custom-scrollbar">
+            <div className="p-8 overflow-auto custom-scrollbar flex-1">
                 {loading ? (
                     <div className="py-20 flex flex-col items-center justify-center">
                         <div className="w-12 h-12 border-4 border-slate-100 border-t-[#0047AB] rounded-full animate-spin mb-4"></div>
@@ -159,17 +159,21 @@ const TimetableEditor = ({ type, targetId, section, onCancel }) => {
                                                 <input 
                                                     type="text"
                                                     placeholder="Subject"
+                                                    maxLength={10}
                                                     className="w-full bg-transparent text-[11px] font-black text-slate-800 outline-none placeholder:text-slate-300"
                                                     value={slot?.subject || ''}
                                                     onChange={(e) => updateSlot(day, period, 'subject', e.target.value)}
                                                 />
-                                                <input 
-                                                    type="text"
-                                                    placeholder={type === 'staff' ? "Class" : "Teacher"}
-                                                    className="w-full bg-transparent text-[9px] font-bold text-slate-400 uppercase outline-none placeholder:text-slate-200"
-                                                    value={type === 'staff' ? (slot?.class || '') : (slot?.teacher || '')}
-                                                    onChange={(e) => updateSlot(day, period, type === 'staff' ? 'class' : 'teacher', e.target.value)}
-                                                />
+                                                {type === 'staff' && (
+                                                    <input 
+                                                        type="text"
+                                                        placeholder="Class"
+                                                        maxLength={10}
+                                                        className="w-full bg-transparent text-[9px] font-bold text-slate-400 uppercase outline-none placeholder:text-slate-200"
+                                                        value={slot?.class || ''}
+                                                        onChange={(e) => updateSlot(day, period, 'class', e.target.value)}
+                                                    />
+                                                )}
                                             </div>
                                         );
                                     })}
