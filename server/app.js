@@ -97,6 +97,9 @@ db.query("ALTER TABLE staff ADD COLUMN IF NOT EXISTS staff_type VARCHAR(20) DEFA
     .then(() => console.log('✅ Database schema verified'))
     .catch(err => console.error('❌ Schema migration failed:', err));
 
+// API Routes
+const router = express.Router();
+
 // Notifications API
 router.get('/notifications/:userId', async (req, res) => {
     try {
@@ -117,20 +120,6 @@ router.post('/notifications', async (req, res) => {
         res.status(500).json({ message: 'Error creating notification' });
     }
 });
-
-// Logger for debugging
-app.use((req, res, next) => {
-    console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
-    next();
-});
-
-// Root route
-app.get('/', (req, res) => {
-    res.send('Hello from Node.js Server!');
-});
-
-// API Routes
-const router = express.Router();
 
 // Auth API
 router.post('/auth/login', async (req, res) => {

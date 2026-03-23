@@ -1,0 +1,133 @@
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const multer = require('multer');
+
+// Configure Cloudinary
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// Configure Multer Storage for Cloudinary
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'school_staff',
+        allowed_formats: ['jpg', 'png', 'jpeg'],
+        transformation: [{ width: 500, height: 500, crop: 'limit' }]
+    }
+});
+const upload = multer({ storage: storage });
+
+const db = require('./config/db');
+
+const app = express();
+const port = process.env.PORT || 5000;
+
+app.use(cors());
+app.use(express.json());
+
+// Startup migration chain
+db.query("ALTER TABLE staff ADD COLUMN IF NOT EXISTS staff_type VARCHAR(20) DEFAULT 'Teaching'")
+    .then(() => db.query("ALTER TABLE staff ADD COLUMN IF NOT EXISTS photo_url TEXT"))
+    .then(() => db.query("ALTER TABLE staff ADD COLUMN IF NOT EXISTS class_teacher VARCHAR(20)"))
+    .then(() => db.query("ALTER TABLE staff ADD COLUMN IF NOT EXISTS subjects TEXT"))
+    .then(() => db.query("ALTER TABLE students ADD COLUMN IF NOT EXISTS photo_url TEXT"))
+    .then(() => db.query("ALTER TABLE students ADD COLUMN IF NOT EXISTS \"feeStatus\" VARCHAR(20) DEFAULT 'Pending'"))
+    .then(() => db.query("ALTER TABLE students ADD COLUMN IF NOT EXISTS \"pendingFee\" NUMERIC(15, 2) DEFAULT 0"))
+    .then(() => db.query(`
+        CREATE TABLE IF NOT EXISTS class_fees (
+            id SERIAL PRIMARY KEY,
+            class_name VARCHAR(50) NOT NULL,
+            fee_name VARCHAR(100) NOT NULL,
+            amount NUMERIC(15, 2) DEFAULT 0,
+            due_date DATE,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(class_name, fee_name)
+        )
+    `))
+    .then(() => db.query("ALTER TABLE class_fees ADD COLUMN IF NOT EXISTS due_date DATE"))
+    .then(() => db.query(`
+        CREATE TABLE IF NOT EXISTS staff_timetables (
+            id SERIAL PRIMARY KEY,
+            "staffId" VARCHAR(50) NOT NULL,
+            day VARCHAR(10) NOT NULL,
+            period1 JSONB,
+            period2 JSONB,
+            period3 JSONB,
+            period4 JSONB,
+            period5 JSONB,
+            period6 JSONB,
+            period7 JSONB,
+            UNIQUE("staffId", day)
+        )
+    `))
+    .then(() => db.query(`
+        CREATE TABLE IF NOT EXISTS student_timetables (
+            id SERIAL PRIMARY KEY,
+            class_name VARCHAR(50) NOT NULL,
+            section VARCHAR(10) NOT NULL,
+            day VARCHAR(10) NOT NULL,
+            period1 JSONB,
+            period2 JSONB,
+            period3 JSONB,
+            period4 JSONB,
+            period5 JSONB,
+            period6 JSONB,
+            period7 JSONB,
+            UNIQUE(class_name, section, day)
+        )
+    `))
+    .then(() => db.query(`
+        CREATE TABLE IF NOT EXISTS notifications (
+            id SERIAL PRIMARY KEY,
+            user_id VARCHAR(50) NOT NULL,
+            message TEXT NOT NULL,
+            type VARCHAR(20) DEFAULT 'info',
+            is_read BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    `))
+    .then(() => console.log('✅ Database schema verified'))
+    .catch(err => console.error('❌ Schema migration failed:', err));
+
+// Logger for debugging
+app.use((req, res, next) => {
+    console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
+    next();
+});
+
+// Root route
+app.get('/', (req, res) => {
+    res.send('Hello from Node.js Server!');
+});
+
+// API Routes initialization
+const router = express.Router();
+
+// Notifications API
+router.get('/notifications/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const result = await db.query('SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC', [userId]);
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ message: 'Error fetching notifications' });
+    }
+});
+
+router.post('/notifications', async (req, res) => {
+    try {
+        const { userId, message, type } = req.body;
+        await db.query('INSERT INTO notifications (user_id, message, type) VALUES ($1, $2, $3)', [userId, message, type || 'info']);
+        res.json({ message: 'Notification created' });
+    } catch (err) {
+        res.status(500).json({ message: 'Error creating notification' });
+    }
+});
