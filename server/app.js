@@ -1092,6 +1092,52 @@ router.delete('/inventory/:id', async (req, res) => {
     }
 });
 
+router.get('/reports/attendance-map', async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                class,
+                section,
+                COUNT(*) as total_days,
+                COUNT(*) FILTER (WHERE status = 'Present') as present,
+                ROUND((COUNT(*) FILTER (WHERE status = 'Present')::float / NULLIF(COUNT(*), 0)) * 100) as percentage
+            FROM student_attendance
+            WHERE EXTRACT(MONTH FROM date) = EXTRACT(MONTH FROM CURRENT_DATE)
+            AND EXTRACT(YEAR FROM date) = EXTRACT(YEAR FROM CURRENT_DATE)
+            GROUP BY class, section
+            ORDER BY class ASC, section ASC
+        `;
+        const result = await db.query(query);
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Attendance map error:', err);
+        res.status(500).json({ message: 'Error fetching attendance map' });
+    }
+});
+
+router.get('/reports/collection-log', async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                "studentId",
+                "firstName" || ' ' || s."lastName" as name,
+                class,
+                section,
+                "totalAmount" as amount,
+                updated_at as "date"
+            FROM students s
+            WHERE "feeStatus" = 'Paid'
+            ORDER BY updated_at DESC
+            LIMIT 50
+        `;
+        const result = await db.query(query);
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Collection log error:', err);
+        res.status(500).json({ message: 'Error fetching collection log' });
+    }
+});
+
 router.get('/test-db', async (req, res) => {
     try {
         const result = await db.query('SELECT NOW() as current_time');

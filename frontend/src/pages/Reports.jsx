@@ -39,6 +39,32 @@ const Reports = () => {
         }
     };
 
+    const generateAttendanceMap = async () => {
+        try {
+            setGenerating(true);
+            const res = await reportsAPI.getAttendanceMap();
+            setReportResults(res.data);
+            setActiveReport('attendance-map');
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setGenerating(false);
+        }
+    };
+
+    const generateCollectionLog = async () => {
+        try {
+            setGenerating(true);
+            const res = await reportsAPI.getCollectionLog();
+            setReportResults(res.data);
+            setActiveReport('collection-log');
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setGenerating(false);
+        }
+    };
+
     const reportCategories = [
         {
             title: 'Financial Reports',
@@ -138,6 +164,8 @@ const Reports = () => {
                                         key={rIdx} 
                                         onClick={() => {
                                             if(report.id === 'pending-fees') generatePendingReport();
+                                            if(report.id === 'student-attendance') generateAttendanceMap();
+                                            if(report.id === 'collection-summary') generateCollectionLog();
                                         }}
                                         className="flex items-center justify-between p-4 rounded-2xl border-2 border-slate-50 hover:border-blue-100 hover:bg-blue-50/50 transition-all cursor-pointer group/item"
                                     >
@@ -172,7 +200,10 @@ const Reports = () => {
                             <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                                 <div>
                                     <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">
-                                        {activeReport === 'pending-fees' ? 'Pending Fees List' : 'Report Analysis'}
+                                        {activeReport === 'pending-fees' ? 'Pending Fees List' : 
+                                         activeReport === 'attendance-map' ? 'Class-wise Attendance Map' :
+                                         activeReport === 'collection-log' ? 'Recent Fee Collection Log' :
+                                         'Report Analysis'}
                                     </h2>
                                     <p className="text-xs font-bold text-[#0047AB] uppercase tracking-widest mt-1">Generated: {new Date().toLocaleString()}</p>
                                 </div>
@@ -199,6 +230,33 @@ const Reports = () => {
                                             { header: 'Class', accessor: 'class' },
                                             { header: 'Section', accessor: 'section' },
                                             { header: 'Pending Amount', render: (row) => <span className="text-rose-600 font-bold">₹{row.pendingFee}</span> }
+                                        ]}
+                                        data={reportResults}
+                                    />
+                                )}
+                                {activeReport === 'attendance-map' && (
+                                    <Table 
+                                        columns={[
+                                            { header: 'Grade/Class', render: (row) => <span className="font-black text-slate-800">{row.class} - {row.section}</span> },
+                                            { header: 'Total Days', accessor: 'total_days' },
+                                            { header: 'Present count', accessor: 'present' },
+                                            { header: 'Monthly Average', render: (row) => (
+                                                <div className={`px-4 py-1.5 rounded-lg text-xs font-black ${row.percentage > 90 ? 'bg-emerald-50 text-emerald-600' : row.percentage > 75 ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600'}`}>
+                                                    {row.percentage}%
+                                                </div>
+                                            )}
+                                        ]}
+                                        data={reportResults}
+                                    />
+                                )}
+                                {activeReport === 'collection-log' && (
+                                    <Table 
+                                        columns={[
+                                            { header: 'Payment Date', render: (row) => <span className="text-xs font-bold text-slate-500">{new Date(row.date).toLocaleDateString()}</span> },
+                                            { header: 'Student Name', accessor: 'name' },
+                                            { header: 'Class', accessor: 'class' },
+                                            { header: 'Paid Amount', render: (row) => <span className="text-emerald-600 font-black">₹{row.amount}</span> },
+                                            { header: 'Action', render: () => <span className="text-[10px] uppercase font-black text-[#0047AB] bg-blue-50 px-3 py-1 rounded-md">Verified</span> }
                                         ]}
                                         data={reportResults}
                                     />

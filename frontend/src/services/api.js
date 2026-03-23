@@ -40,6 +40,8 @@ apiClient.interceptors.response.use(
 export const reportsAPI = {
     getSummary: () => apiClient.get('/reports/summary'),
     getPendingList: (className) => apiClient.get('/reports/pending-list', { params: { className } }),
+    getAttendanceMap: () => apiClient.get('/reports/attendance-map'),
+    getCollectionLog: () => apiClient.get('/reports/collection-log'),
 };
 
 // Dashboard Stats
