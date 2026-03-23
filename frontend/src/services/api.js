@@ -114,4 +114,12 @@ export const leaveAPI = {
     updateStatus: (id, status) => apiClient.put(`/staff-leaves/${id}`, { status }),
 };
 
+// Timetable API
+export const timetableAPI = {
+    getStaff: (staffId) => apiClient.get(`timetable/staff/${staffId}`),
+    saveStaff: (data) => apiClient.post('timetable/staff', data),
+    getStudent: (className, section) => apiClient.get(`timetable/student/${className}/${section}`),
+    saveStudent: (data) => apiClient.post('timetable/student', data),
+};
+
 export default apiClient;
