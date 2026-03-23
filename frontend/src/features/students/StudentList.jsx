@@ -5,6 +5,7 @@ import { FiPlus, FiEdit2, FiTrash2, FiEye, FiChevronRight, FiSearch, FiChevronDo
 import { Button, Card, Table, Modal, Badge } from '../../components/ui';
 import StudentForm from './StudentForm';
 import { fetchStudents, deleteStudent, setSelectedStudent } from './studentSlice';
+import TimetableEditor from '../../components/TimetableEditor';
 
 const StudentList = () => {
     const dispatch = useDispatch();
@@ -20,6 +21,8 @@ const StudentList = () => {
     const [selectedSection, setSelectedSection] = useState('All Sections');
     const [isClassOpen, setIsClassOpen] = useState(false);
     const [isSectionOpen, setIsSectionOpen] = useState(false);
+    const [showTimetableEditor, setShowTimetableEditor] = useState(false);
+    const [isTableMaximized, setIsTableMaximized] = useState(false);
 
     const classes = ['All Classes', 'LKG', 'UKG', ...Array.from({ length: 12 }, (_, i) => `${i + 1}${getSuffix(i + 1)} Std`)];
     const sections = ['All Sections', 'A', 'B', 'C', 'D', 'E'];
@@ -217,6 +220,16 @@ const StudentList = () => {
                             </div>
                         )}
                     </div>
+
+                    {/* Manage Timetable Button */}
+                    {selectedClass !== 'All Classes' && selectedSection !== 'All Sections' && (
+                        <button 
+                            onClick={() => setShowTimetableEditor(true)}
+                            className="bg-white text-[#0047AB] border-2 border-[#0047AB] px-6 py-3 rounded-xl font-black text-sm hover:bg-blue-50 transition-all active:scale-95"
+                        >
+                            Manage {selectedClass} - {selectedSection} Timetable
+                        </button>
+                    )}
                 </div>
 
                 {/* Table */}
@@ -228,6 +241,20 @@ const StudentList = () => {
                     />
                 </div>
             </div>
+
+            {/* Timetable Editor Modal Overlay */}
+            {showTimetableEditor && (
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center p-8 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="w-full max-w-6xl">
+                        <TimetableEditor 
+                            type="student" 
+                            targetId={selectedClass} 
+                            section={selectedSection} 
+                            onCancel={() => setShowTimetableEditor(false)} 
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

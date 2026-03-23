@@ -39,6 +39,37 @@ db.query("ALTER TABLE staff ADD COLUMN IF NOT EXISTS staff_type VARCHAR(20) DEFA
     .then(() => db.query("ALTER TABLE staff ADD COLUMN IF NOT EXISTS class_teacher VARCHAR(20)"))
     .then(() => db.query("ALTER TABLE staff ADD COLUMN IF NOT EXISTS subjects TEXT"))
     .then(() => db.query("ALTER TABLE students ADD COLUMN IF NOT EXISTS photo_url TEXT"))
+    .then(() => db.query(`
+        CREATE TABLE IF NOT EXISTS staff_timetables (
+            id SERIAL PRIMARY KEY,
+            "staffId" VARCHAR(50) NOT NULL,
+            day VARCHAR(10) NOT NULL,
+            period1 JSONB,
+            period2 JSONB,
+            period3 JSONB,
+            period4 JSONB,
+            period5 JSONB,
+            period6 JSONB,
+            period7 JSONB,
+            UNIQUE("staffId", day)
+        )
+    `))
+    .then(() => db.query(`
+        CREATE TABLE IF NOT EXISTS student_timetables (
+            id SERIAL PRIMARY KEY,
+            class_name VARCHAR(50) NOT NULL,
+            section VARCHAR(10) NOT NULL,
+            day VARCHAR(10) NOT NULL,
+            period1 JSONB,
+            period2 JSONB,
+            period3 JSONB,
+            period4 JSONB,
+            period5 JSONB,
+            period6 JSONB,
+            period7 JSONB,
+            UNIQUE(class_name, section, day)
+        )
+    `))
     .then(() => console.log('✅ Database schema verified'))
     .catch(err => console.error('❌ Schema migration failed:', err));
 
@@ -783,7 +814,84 @@ router.put('/staff-leaves/:id', async (req, res) => {
         res.status(500).json({ message: 'Error updating leave status.' });
     }
 });
+// Timetable APIs (Admin Management)
+router.get('/timetable/staff/:staffId', async (req, res) => {
+    try {
+        const { staffId } = req.params;
+        const result = await db.query('SELECT * FROM staff_timetables WHERE "staffId" = $1', [staffId]);
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ message: 'Error fetching staff timetable' });
+    }
+});
 
+router.post('/timetable/staff', async (req, res) => {
+    try {
+        const { staffId, day, periods } = req.body;
+        const query = `
+            INSERT INTO staff_timetables ("staffId", "day", "period1", "period2", "period3", "period4", "period5", "period6", "period7")
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            ON CONFLICT ("staffId", "day") DO UPDATE SET
+                "period1" = EXCLUDED."period1",
+                "period2" = EXCLUDED."period2",
+                "period3" = EXCLUDED."period3",
+                "period4" = EXCLUDED."period4",
+                "period5" = EXCLUDED."period5",
+                "period6" = EXCLUDED."period6",
+                "period7" = EXCLUDED."period7"
+            RETURNING *
+        `;
+        const values = [
+            staffId, day,
+            periods.period1 || null, periods.period2 || null, periods.period3 || null,
+            periods.period4 || null, periods.period5 || null, periods.period6 || null,
+            periods.period7 || null
+        ];
+        const result = await db.query(query, values);
+        res.json(result.rows[0]);
+    } catch (err) {
+        res.status(500).json({ message: 'Error saving staff timetable' });
+    }
+});
+
+router.get('/timetable/student/:className/:section', async (req, res) => {
+    try {
+        const { className, section } = req.params;
+        const result = await db.query('SELECT * FROM student_timetables WHERE class_name = $1 AND section = $2', [className, section]);
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ message: 'Error fetching student timetable' });
+    }
+});
+
+router.post('/timetable/student', async (req, res) => {
+    try {
+        const { className, section, day, periods } = req.body;
+        const query = `
+            INSERT INTO student_timetables (class_name, section, "day", "period1", "period2", "period3", "period4", "period5", "period6", "period7")
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            ON CONFLICT (class_name, section, "day") DO UPDATE SET
+                "period1" = EXCLUDED."period1",
+                "period2" = EXCLUDED."period2",
+                "period3" = EXCLUDED."period3",
+                "period4" = EXCLUDED."period4",
+                "period5" = EXCLUDED."period5",
+                "period6" = EXCLUDED."period6",
+                "period7" = EXCLUDED."period7"
+            RETURNING *
+        `;
+        const values = [
+            className, section, day,
+            periods.period1 || null, periods.period2 || null, periods.period3 || null,
+            periods.period4 || null, periods.period5 || null, periods.period6 || null,
+            periods.period7 || null
+        ];
+        const result = await db.query(query, values);
+        res.json(result.rows[0]);
+    } catch (err) {
+        res.status(500).json({ message: 'Error saving student timetable' });
+    }
+});
 // Mounting the router on /api
 app.use('/api', router);
 

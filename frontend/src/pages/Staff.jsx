@@ -3,6 +3,8 @@ import { staffAPI } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { FiPlus, FiEye, FiSearch, FiChevronDown, FiEdit2, FiTrash2, FiUser } from 'react-icons/fi';
 import { Card, Table } from '../components/ui';
+import TimetableEditor from '../components/TimetableEditor';
+import { FiCalendar as FiCalendarIcon } from 'react-icons/fi';
 
 const Staff = () => {
     const navigate = useNavigate();
@@ -12,6 +14,7 @@ const Staff = () => {
     const [staffData, setStaffData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [editingTimetableStaff, setEditingTimetableStaff] = useState(null);
 
     // Dropdown states
     const [isClassOpen, setIsClassOpen] = useState(false);
@@ -117,6 +120,13 @@ const Staff = () => {
                         title="View Profile"
                     >
                         <FiEye size={18} />
+                    </button>
+                    <button
+                        onClick={() => setEditingTimetableStaff(row)}
+                        className="p-2 hover:bg-blue-50 rounded-lg transition-colors text-slate-500 hover:text-blue-600"
+                        title="Manage Timetable"
+                    >
+                        <FiCalendarIcon size={18} />
                     </button>
                     <button
                         onClick={() => navigate(`/staff/edit/${row.id}`)}
@@ -249,6 +259,19 @@ const Staff = () => {
                     />
                 </div>
             </div>
+
+            {/* Timetable Editor Modal */}
+            {editingTimetableStaff && (
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center p-8 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="w-full max-w-6xl">
+                        <TimetableEditor 
+                            type="staff" 
+                            targetId={editingTimetableStaff.staffId || editingTimetableStaff.employeeId} 
+                            onCancel={() => setEditingTimetableStaff(null)} 
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
