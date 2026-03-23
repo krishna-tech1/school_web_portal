@@ -237,30 +237,34 @@ const FeeStructure = () => {
                                                 <span className="text-[9px] text-[#0047AB] lowercase">{new Date(feeData.find(f => f.fee_name === fName).due_date).toLocaleDateString()}</span>
                                             )}
                                         </div>
-                                        <div className="flex gap-2">
+                                        <div className="flex gap-2 shrink-0">
                                             <button 
                                                 onClick={() => {
-                                                    const date = prompt(`Set last date for "${fName}" (YYYY-MM-DD):`, feeData.find(f => f.fee_name === fName)?.due_date?.split('T')[0] || '');
+                                                    const date = prompt(`Enter Deadline (YYYY-MM-DD) for "${fName}":`, feeData.find(f => f.fee_name === fName)?.due_date?.split('T')[0] || '');
                                                     if (date) {
                                                         const selectedDate = new Date(date);
                                                         const today = new Date();
                                                         today.setHours(0,0,0,0);
                                                         if (selectedDate < today) {
-                                                            alert('Admin cannot set past date as last date.');
+                                                            alert('Past dates are not allowed.');
                                                             return;
                                                         }
-                                                        feeAPI.saveDueDate({ feeName: fName, dueDate: date }).then(() => fetchFees());
+                                                        feeAPI.saveDueDate({ feeName: fName, dueDate: date }).then(() => {
+                                                            alert(`Deadline for ${fName} set to ${date}. System will now mark students as overdue after this date.`);
+                                                            fetchFees();
+                                                        });
                                                     }
                                                 }}
-                                                title="Set Overdue Date"
-                                                className="opacity-0 group-hover/row:opacity-100 p-2 bg-amber-50 text-amber-500 hover:bg-amber-500 hover:text-white rounded-lg transition-all"
+                                                title="Set Fee Deadline"
+                                                className="opacity-0 group-hover/row:opacity-100 p-2 bg-[#0047AB]/5 text-[#0047AB] hover:bg-[#0047AB] hover:text-white rounded-xl transition-all shadow-sm flex items-center gap-1.5"
                                             >
-                                                <FiAlertCircle size={14} />
+                                                <FiCalendar size={14} />
+                                                <span className="text-[10px] font-black uppercase">Deadline</span>
                                             </button>
                                             <button 
                                                 onClick={() => deleteFeeType(fName)}
                                                 title={`Delete "${fName}" type`}
-                                                className="opacity-0 group-hover/row:opacity-100 p-2 bg-rose-50 text-rose-400 hover:bg-rose-500 hover:text-white rounded-lg transition-all"
+                                                className="opacity-0 group-hover/row:opacity-100 p-2 bg-rose-50 text-rose-400 hover:bg-rose-500 hover:text-white rounded-xl transition-all"
                                             >
                                                 <FiTrash2 size={14} />
                                             </button>
