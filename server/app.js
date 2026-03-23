@@ -164,10 +164,41 @@ router.get('/auth/me', async (req, res) => {
 // Students API
 router.get('/students', async (req, res) => {
     try {
+        // Automatic Fee Status Check:
+        // Update all students to 'Overdue' if they have pending fees AND any fee for their class is past due_date
+        const overdueUpdateQuery = `
+            UPDATE students s
+            SET "feeStatus" = 'Overdue'
+            WHERE "pendingFee" > 0 
+            AND "feeStatus" != 'Overdue'
+            AND EXISTS (
+                SELECT 1 FROM class_fees cf 
+                WHERE cf.class_name = s.class 
+                AND cf.due_date < CURRENT_DATE
+                AND cf.amount > 0
+            )
+        `;
+        await db.query(overdueUpdateQuery);
+
+        // Also reset to 'Pending' if the above isn't true but they still have balance (in case date was extended)
+        const pendingResetQuery = `
+            UPDATE students s
+            SET "feeStatus" = 'Pending'
+            WHERE "pendingFee" > 0 
+            AND "feeStatus" = 'Overdue'
+            AND NOT EXISTS (
+                SELECT 1 FROM class_fees cf 
+                WHERE cf.class_name = s.class 
+                AND cf.due_date < CURRENT_DATE
+                AND cf.amount > 0
+            )
+        `;
+        await db.query(pendingResetQuery);
+
         const result = await db.query('SELECT * FROM students ORDER BY id ASC');
         res.json(result.rows);
     } catch (err) {
-        console.error(err);
+        console.error('Fetch students error:', err);
         res.status(500).json({ message: 'Error fetching students' });
     }
 });
@@ -615,6 +646,7 @@ db.query(`
         class_name VARCHAR(50) NOT NULL,
         fee_name VARCHAR(100) NOT NULL,
         amount NUMERIC(15, 2) DEFAULT 0,
+        due_date DATE,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(class_name, fee_name)
     )
@@ -648,28 +680,41 @@ router.get('/fees', async (req, res) => {
 });
 
 router.post('/fees/bulk', async (req, res) => {
-    const { feeName, updates } = req.body; // updates: [{ className: 'LKG', amount: 500 }, ...]
+    const { feeName, updates, dueDate } = req.body; 
     
-    if (!feeName || feeName.length > 25 || !updates || !Array.isArray(updates)) {
+    if (!feeName || feeName.length > 50 || !updates || !Array.isArray(updates)) {
         return res.status(400).json({ message: 'Invalid bulk data or fee name too long' });
     }
 
     try {
         for (const update of updates) {
             const query = `
-                INSERT INTO class_fees (class_name, fee_name, amount, updated_at)
-                VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+                INSERT INTO class_fees (class_name, fee_name, amount, due_date, updated_at)
+                VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
                 ON CONFLICT (class_name, fee_name) 
                 DO UPDATE SET 
                     amount = EXCLUDED.amount,
+                    due_date = COALESCE(EXCLUDED.due_date, class_fees.due_date),
                     updated_at = CURRENT_TIMESTAMP
             `;
-            await db.query(query, [update.className, feeName, update.amount]);
+            await db.query(query, [update.className, feeName, update.amount, dueDate || null]);
         }
         res.json({ message: 'Bulk fees updated successfully' });
     } catch (err) {
         console.error('Bulk fee error:', err);
         res.status(500).json({ message: 'Error updating bulk fees' });
+    }
+});
+
+router.post('/fees/due-date', async (req, res) => {
+    const { feeName, dueDate } = req.body;
+    if (!feeName || !dueDate) return res.status(400).json({ message: 'Fee name and due date required' });
+    
+    try {
+        await db.query('UPDATE class_fees SET due_date = $1 WHERE fee_name = $2', [dueDate, feeName]);
+        res.json({ message: 'Due date updated for ' + feeName });
+    } catch (err) {
+        res.status(500).json({ message: 'Error updating due date' });
     }
 });
 
