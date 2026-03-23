@@ -167,13 +167,13 @@ router.get('/students', async (req, res) => {
         // Automatic Fee Status Check:
         // Update all students to 'Overdue' if they have pending fees AND any fee for their class is past due_date
         const overdueUpdateQuery = `
-            UPDATE students s
+            UPDATE students
             SET "feeStatus" = 'Overdue'
             WHERE "pendingFee" > 0 
             AND "feeStatus" != 'Overdue'
             AND EXISTS (
                 SELECT 1 FROM class_fees cf 
-                WHERE cf.class_name = s.class 
+                WHERE cf.class_name = students."class" 
                 AND cf.due_date < CURRENT_DATE
                 AND cf.amount > 0
             )
@@ -182,13 +182,13 @@ router.get('/students', async (req, res) => {
 
         // Also reset to 'Pending' if the above isn't true but they still have balance (in case date was extended)
         const pendingResetQuery = `
-            UPDATE students s
+            UPDATE students
             SET "feeStatus" = 'Pending'
             WHERE "pendingFee" > 0 
             AND "feeStatus" = 'Overdue'
             AND NOT EXISTS (
                 SELECT 1 FROM class_fees cf 
-                WHERE cf.class_name = s.class 
+                WHERE cf.class_name = students."class" 
                 AND cf.due_date < CURRENT_DATE
                 AND cf.amount > 0
             )
