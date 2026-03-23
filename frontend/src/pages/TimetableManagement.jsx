@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { FiCalendar, FiUsers, FiBookOpen, FiChevronRight, FiSearch, FiInfo } from 'react-icons/fi';
 import { staffAPI } from '../services/api';
 import TimetableEditor from '../components/TimetableEditor';
 
 const TimetableManagement = () => {
-    const [activeTab, setActiveTab] = useState('student');
+    const { user } = useSelector((state) => state.auth);
+    const uRole = user?.role?.toLowerCase() || '';
+    
+    // Role-based defaults
+    const isStudentManager = uRole === 'studentmanager';
+    const isTeacherManager = uRole === 'teachermanager';
+    const isFullAdmin = uRole === 'administrator' || uRole === 'admin';
+
+    const [activeTab, setActiveTab] = useState(isTeacherManager ? 'staff' : 'student');
     const [staffList, setStaffList] = useState([]);
     const [loading, setLoading] = useState(false);
     
@@ -68,18 +77,22 @@ const TimetableManagement = () => {
                 
                 {/* Tab Switcher */}
                 <div className="bg-white p-1.5 rounded-[1.25rem] shadow-sm border border-slate-100 flex gap-2">
-                    <button 
-                        onClick={() => setActiveTab('student')}
-                        className={`px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-3 ${activeTab === 'student' ? 'bg-[#0047AB] text-white shadow-xl shadow-blue-100' : 'text-slate-400 hover:bg-slate-50'}`}
-                    >
-                        <FiBookOpen size={18} /> Student Class
-                    </button>
-                    <button 
-                        onClick={() => setActiveTab('staff')}
-                        className={`px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-3 ${activeTab === 'staff' ? 'bg-[#0047AB] text-white shadow-xl shadow-blue-100' : 'text-slate-400 hover:bg-slate-50'}`}
-                    >
-                        <FiUsers size={18} /> Staff Faculty
-                    </button>
+                    {(isFullAdmin || isStudentManager) && (
+                        <button 
+                            onClick={() => setActiveTab('student')}
+                            className={`px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-3 ${activeTab === 'student' ? 'bg-[#0047AB] text-white shadow-xl shadow-blue-100' : 'text-slate-400 hover:bg-slate-50'}`}
+                        >
+                            <FiBookOpen size={18} /> Student Class
+                        </button>
+                    )}
+                    {(isFullAdmin || isTeacherManager) && (
+                        <button 
+                            onClick={() => setActiveTab('staff')}
+                            className={`px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-3 ${activeTab === 'staff' ? 'bg-[#0047AB] text-white shadow-xl shadow-blue-100' : 'text-slate-400 hover:bg-slate-50'}`}
+                        >
+                            <FiUsers size={18} /> Staff Faculty
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -181,14 +194,18 @@ const TimetableManagement = () => {
                                 Select a specific class batch or faculty member from the side directory to access their live timetable configuration.
                             </p>
                             <div className="flex flex-wrap justify-center gap-6">
-                                <div className="bg-slate-50 px-6 py-4 rounded-2xl border border-slate-100">
-                                    <h4 className="text-[10px] font-black text-[#0047AB] uppercase tracking-widest mb-1">Students</h4>
-                                    <p className="text-2xl font-black text-slate-800">{classes.length * sections.length}+ Units</p>
-                                </div>
-                                <div className="bg-slate-50 px-6 py-4 rounded-2xl border border-slate-100">
-                                    <h4 className="text-[10px] font-black text-[#0047AB] uppercase tracking-widest mb-1">Faculty</h4>
-                                    <p className="text-2xl font-black text-slate-800">{staffList.length}+ Staff</p>
-                                </div>
+                                {(isFullAdmin || isStudentManager) && (
+                                    <div className="bg-slate-50 px-6 py-4 rounded-2xl border border-slate-100">
+                                        <h4 className="text-[10px] font-black text-[#0047AB] uppercase tracking-widest mb-1">Students</h4>
+                                        <p className="text-2xl font-black text-slate-800">{classes.length * sections.length}+ Units</p>
+                                    </div>
+                                )}
+                                {(isFullAdmin || isTeacherManager) && (
+                                    <div className="bg-slate-50 px-6 py-4 rounded-2xl border border-slate-100">
+                                        <h4 className="text-[10px] font-black text-[#0047AB] uppercase tracking-widest mb-1">Faculty</h4>
+                                        <p className="text-2xl font-black text-slate-800">{staffList.length}+ Staff</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
