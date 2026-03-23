@@ -24,6 +24,7 @@ import Inventory from '../pages/Inventory';
 import Reports from '../pages/Reports';
 import SystemConfig from '../pages/SystemConfig';
 import Announcements from '../pages/Announcements';
+import TimetableManagement from '../pages/TimetableManagement';
 
 // Placeholder pages
 const Calendar = () => (
@@ -71,6 +72,7 @@ const AppRoutes = () => {
                                     <Route path="/reports" element={<Reports />} />
                                     <Route path="/calendar" element={<Calendar />} />
                                     <Route path="/system-config" element={<SystemConfig />} />
+                                    <Route path="/timetable" element={<TimetableManagement />} />
                                 </Routes>
                             </MainLayout>
                         </ProtectedRoute>

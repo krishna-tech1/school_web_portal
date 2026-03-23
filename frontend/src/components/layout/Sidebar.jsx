@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { NavLink } from 'react-router-dom';
-import { FiGrid, FiCheckSquare, FiCreditCard, FiBox, FiFileText, FiX, FiSettings, FiSend } from 'react-icons/fi';
+import { FiGrid, FiCheckSquare, FiCreditCard, FiBox, FiFileText, FiX, FiSettings, FiSend, FiCalendar } from 'react-icons/fi';
 import { FaGraduationCap, FaChalkboardTeacher } from 'react-icons/fa';
 import { GoTriangleDown } from 'react-icons/go';
 
@@ -51,6 +51,7 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen, collapsed }) => {
                 { path: '/attendance/teacher', label: 'Teacher Attendance', roles: ['Administrator', 'TeacherManager'] },
             ]
         },
+        { path: '/timetable', icon: FiCalendar, label: 'Timetable', hasSub: false, roles: ['Administrator', 'TeacherManager', 'StudentManager'] },
         {
             label: 'Fees',
             icon: FiCreditCard,
@@ -61,18 +62,43 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen, collapsed }) => {
                 { path: '/fees/pending', label: 'Pending Fees', roles: ['Administrator', 'FeeManager'] },
             ]
         },
-        { path: '/inventory', icon: FiBox, label: 'Inventory', hasSub: true, roles: ['Administrator', 'InventoryManager'] },
+        { path: '/inventory', icon: FiBox, label: 'Inventory', hasSub: false, roles: ['Administrator', 'InventoryManager'] },
         { path: '/announcements', icon: FiSend, label: 'Announcements', hasSub: false, roles: ['Administrator'] },
         { path: '/reports', icon: FiFileText, label: 'Reports', hasSub: false, roles: ['Administrator'] },
         { path: '/system-config', icon: FiSettings, label: 'System Config', hasSub: false, roles: ['Administrator'] },
     ];
 
+    const uRole = user?.role?.toLowerCase() || '';
+    
+    // Robust access check
+    const canAccess = (roles, label) => {
+        if (!roles) return true;
+        const lowRoles = roles.map(r => r.toLowerCase());
+        
+        // Admin always has access
+        if (uRole === 'administrator' || uRole === 'admin') return true;
+        
+        // Exact match
+        if (lowRoles.includes(uRole)) return true;
+        
+        // Role mapping for 'teacher'
+        if (uRole === 'teacher') {
+            const teacherAccessible = [
+                'Dashboard', 'Students', 'Teacher', 'Attendance', 'Timetable', 'Announcements',
+                'Student List', 'Teacher List', 'Student Attendance', 'Teacher Attendance', 
+                'Leave Tracking', 'Add Student', 'Add Teacher', 'Promotion'
+            ];
+            if (lowRoles.includes('teachermanager') || lowRoles.includes('studentmanager') || teacherAccessible.includes(label)) return true;
+        }
+        return false;
+    };
+
     const menuItems = allMenuItems
-        .filter(item => item.roles.includes(user?.role))
         .map(item => ({
             ...item,
-            subItems: item.subItems?.filter(sub => sub.roles.includes(user?.role))
-        }));
+            subItems: item.subItems?.filter(sub => canAccess(sub.roles, sub.label))
+        }))
+        .filter(item => canAccess(item.roles, item.label) && (!item.hasSub || (item.subItems && item.subItems.length > 0)));
 
     return (
         <aside
