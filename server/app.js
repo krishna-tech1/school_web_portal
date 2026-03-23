@@ -84,8 +84,39 @@ db.query("ALTER TABLE staff ADD COLUMN IF NOT EXISTS staff_type VARCHAR(20) DEFA
             UNIQUE(class_name, section, day)
         )
     `))
+    .then(() => db.query(`
+        CREATE TABLE IF NOT EXISTS notifications (
+            id SERIAL PRIMARY KEY,
+            user_id VARCHAR(50) NOT NULL,
+            message TEXT NOT NULL,
+            type VARCHAR(20) DEFAULT 'info',
+            is_read BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    `))
     .then(() => console.log('✅ Database schema verified'))
     .catch(err => console.error('❌ Schema migration failed:', err));
+
+// Notifications API
+router.get('/notifications/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const result = await db.query('SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC', [userId]);
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ message: 'Error fetching notifications' });
+    }
+});
+
+router.post('/notifications', async (req, res) => {
+    try {
+        const { userId, message, type } = req.body;
+        await db.query('INSERT INTO notifications (user_id, message, type) VALUES ($1, $2, $3)', [userId, message, type || 'info']);
+        res.json({ message: 'Notification created' });
+    } catch (err) {
+        res.status(500).json({ message: 'Error creating notification' });
+    }
+});
 
 // Logger for debugging
 app.use((req, res, next) => {

@@ -116,6 +116,12 @@ export const leaveAPI = {
     updateStatus: (id, status) => apiClient.put(`/staff-leaves/${id}`, { status }),
 };
 
+// Notification API
+export const notificationAPI = {
+    getAll: (userId) => apiClient.get(`/notifications/${userId}`),
+    create: (data) => apiClient.post('/notifications', data), // { userId, message, type }
+};
+
 // Timetable API
 export const timetableAPI = {
     getStaff: (staffId) => apiClient.get(`timetable/staff/${staffId}`),

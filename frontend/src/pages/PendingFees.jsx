@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiSearch, FiChevronDown, FiBell, FiCheckCircle, FiLoader } from 'react-icons/fi';
 import { Card, Table } from '../components/ui';
-import { studentAPI } from '../services/api';
+import { studentAPI, feeAPI, notificationAPI } from '../services/api';
 import { toast } from 'react-toastify';
 
 const PendingFees = () => {
@@ -24,7 +24,7 @@ const PendingFees = () => {
         try {
             setLoading(true);
             const res = await studentAPI.getAll();
-            setStudents(res.data || res); // Handle both array and {data: []}
+            setStudents(res.data || res); 
         } catch (err) {
             console.error('Failed to fetch students:', err);
             toast.error('Failed to load student data');
@@ -76,6 +76,37 @@ const PendingFees = () => {
         }
     };
 
+    const handleRemind = async (student) => {
+        try {
+            // Find the deadline for this student's class
+            const res = await feeAPI.getAll();
+            const classFees = (res.data || res).filter(f => f.class_name === student.class && f.due_date);
+            const firstDeadline = classFees.length > 0 
+                ? new Date(Math.min(...classFees.map(f => new Date(f.due_date))))
+                : null;
+                
+            const dateStr = firstDeadline ? firstDeadline.toLocaleDateString() : 'near target';
+            let message = '';
+            
+            if (student.feeStatus === 'Overdue') {
+                message = `Your fee last date is over. Please pay the fee as soon as possible.`;
+            } else {
+                message = `Your fee last date is ${dateStr}. Please pay the fees timely.`;
+            }
+            
+            await notificationAPI.create({
+                userId: student.studentId,
+                message: message,
+                type: student.feeStatus === 'Overdue' ? 'error' : 'warning'
+            });
+            
+            toast.success(`Reminder sent to ${student.firstName}`);
+        } catch (err) {
+            console.error('Failed to send reminder:', err);
+            toast.error('Could not send notification');
+        }
+    };
+
     const filteredData = Array.isArray(students) ? students.filter(s => {
         const matchesSearch = (s.firstName + ' ' + s.lastName).toLowerCase().includes(search.toLowerCase()) || 
                              s.studentId.toLowerCase().includes(search.toLowerCase());
@@ -107,26 +138,31 @@ const PendingFees = () => {
             render: (row) => (
                 <div className="flex gap-2">
                     {row.feeStatus !== 'Paid' && (
-                        <button 
-                            onClick={() => handleMarkPaid(row)}
-                            className="bg-[#10B981] text-white p-2 rounded-lg hover:bg-[#059669] transition-all"
-                            title="Mark as Paid"
-                        >
-                            <FiCheckCircle size={18} />
-                        </button>
+                        <>
+                            <button 
+                                onClick={() => handleMarkPaid(row)}
+                                className="bg-[#10B981] text-white p-2 rounded-lg hover:bg-[#059669] transition-all"
+                                title="Mark as Paid"
+                            >
+                                <FiCheckCircle size={18} />
+                            </button>
+                            {row.feeStatus === 'Pending' && (
+                                <button 
+                                    onClick={() => handleMarkOverdue(row)}
+                                    className="bg-slate-100 text-[#0047AB] p-2 rounded-lg hover:bg-slate-200 transition-all font-bold text-[10px] px-3 uppercase tracking-widest"
+                                    title="Set Overdue"
+                                >
+                                    Mark Overdue
+                                </button>
+                            )}
+                            <button 
+                                onClick={() => handleRemind(row)}
+                                className="bg-[#0047AB] text-white px-4 py-2 rounded-lg font-bold text-[10px] uppercase tracking-widest hover:bg-[#003580] transition-all"
+                            >
+                                Remind
+                            </button>
+                        </>
                     )}
-                    {row.feeStatus === 'Pending' && (
-                         <button 
-                            onClick={() => handleMarkOverdue(row)}
-                            className="bg-slate-100 text-[#0047AB] p-2 rounded-lg hover:bg-slate-200 transition-all font-bold text-[10px] px-3 uppercase tracking-widest"
-                            title="Set Overdue"
-                        >
-                            Mark Overdue
-                        </button>
-                    )}
-                    <button className="bg-[#0047AB] text-white px-4 py-2 rounded-lg font-bold text-[10px] uppercase tracking-widest hover:bg-[#003580] transition-all">
-                        Reminder
-                    </button>
                 </div>
             )
         }
