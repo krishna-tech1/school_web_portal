@@ -64,7 +64,7 @@ const Staff = () => {
     const staffList = staffData.filter(staff => {
         const name = staff.name || `${staff.firstName} ${staff.lastName}`;
         const sId = staff.staffId || staff.employeeId || '';
-        
+
         const matchesSearch = name.toLowerCase().includes(search.toLowerCase()) ||
             sId.toLowerCase().includes(search.toLowerCase());
         const matchesClass = selectedClass === 'All Class' || staff.class_teacher?.includes(selectedClass);
@@ -180,7 +180,7 @@ const Staff = () => {
                         <FiSearch className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/search:text-[#0047AB] transition-colors" size={20} />
                         <input
                             type="text"
-                            placeholder="Find by name, ID or department..."
+                            placeholder="Find by name, ID..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="w-full pl-16 pr-6 py-4.5 bg-slate-50 border-2 border-slate-50 rounded-[1.25rem] text-[15px] font-bold focus:bg-white focus:border-[#0047AB]/20 focus:ring-4 focus:ring-[#0047AB]/5 transition-all outline-none placeholder:text-slate-400"
@@ -264,10 +264,10 @@ const Staff = () => {
             {editingTimetableStaff && (
                 <div className="fixed inset-0 z-[1000] flex items-center justify-center p-8 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
                     <div className="w-full max-w-6xl">
-                        <TimetableEditor 
-                            type="staff" 
-                            targetId={editingTimetableStaff.staffId || editingTimetableStaff.employeeId} 
-                            onCancel={() => setEditingTimetableStaff(null)} 
+                        <TimetableEditor
+                            type="staff"
+                            targetId={editingTimetableStaff.staffId || editingTimetableStaff.employeeId}
+                            onCancel={() => setEditingTimetableStaff(null)}
                         />
                     </div>
                 </div>
