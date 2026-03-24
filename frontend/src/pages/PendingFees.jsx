@@ -11,6 +11,7 @@ const PendingFees = () => {
     const [selectedStatus, setSelectedStatus] = useState('All Status');
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [remindingId, setRemindingId] = useState(null);
 
     const [isClassOpen, setIsClassOpen] = useState(false);
     const [isSectionOpen, setIsSectionOpen] = useState(false);
@@ -78,32 +79,43 @@ const PendingFees = () => {
 
     const handleRemind = async (student) => {
         try {
+            setRemindingId(student.studentId);
             // Find the deadline for this student's class
             const res = await feeAPI.getAll();
-            const classFees = (res.data || res).filter(f => f.class_name === student.class && f.due_date);
-            const firstDeadline = classFees.length > 0 
-                ? new Date(Math.min(...classFees.map(f => new Date(f.due_date))))
-                : null;
-                
-            const dateStr = firstDeadline ? firstDeadline.toLocaleDateString() : 'near target';
-            let message = '';
+            const allFees = res.data || res || [];
+            const classFees = allFees.filter(f => f.class_name === student.class && f.due_date);
             
-            if (student.feeStatus === 'Overdue') {
-                message = `Your fee last date is over. Please pay the fee as soon as possible.`;
+            let dateStr = 'soon';
+            if (classFees.length > 0) {
+                const validDates = classFees
+                    .map(f => new Date(f.due_date))
+                    .filter(d => !isNaN(d.getTime()));
+                
+                if (validDates.length > 0) {
+                    const firstDeadline = new Date(Math.min(...validDates));
+                    dateStr = firstDeadline.toLocaleDateString();
+                }
+            }
+                
+            let message = '';
+            if (student.feeStatus?.toLowerCase() === 'overdue') {
+                message = `Your fee payment deadline has passed. Please settle the outstanding amount of ₹${student.pendingFee?.toLocaleString()} immediately.`;
             } else {
-                message = `Your fee last date is ${dateStr}. Please pay the fees timely.`;
+                message = `Reminder: Your school fees are due by ${dateStr}. Outstanding balance: ₹${student.pendingFee?.toLocaleString()}. Please pay timely.`;
             }
             
             await notificationAPI.create({
                 userId: student.studentId,
                 message: message,
-                type: student.feeStatus === 'Overdue' ? 'error' : 'warning'
+                type: student.feeStatus?.toLowerCase() === 'overdue' ? 'error' : 'warning'
             });
             
             toast.success(`Reminder sent to ${student.firstName}`);
         } catch (err) {
             console.error('Failed to send reminder:', err);
             toast.error('Could not send notification');
+        } finally {
+            setRemindingId(null);
         }
     };
 
@@ -137,19 +149,19 @@ const PendingFees = () => {
             header: 'Actions',
             render: (row) => (
                 <div className="flex gap-2">
-                    {row.feeStatus !== 'Paid' && (
+                    {(row.feeStatus?.toLowerCase() !== 'paid' && parseFloat(row.pendingFee) > 0) && (
                         <>
                             <button 
                                 onClick={() => handleMarkPaid(row)}
-                                className="bg-[#10B981] text-white p-2 rounded-lg hover:bg-[#059669] transition-all"
+                                className="bg-[#10B981] text-white p-2.5 rounded-xl hover:bg-[#059669] transition-all shadow-sm flex items-center justify-center"
                                 title="Mark as Paid"
                             >
                                 <FiCheckCircle size={18} />
                             </button>
-                            {row.feeStatus === 'Pending' && (
+                            {row.feeStatus?.toLowerCase() === 'pending' && (
                                 <button 
                                     onClick={() => handleMarkOverdue(row)}
-                                    className="bg-slate-100 text-[#0047AB] p-2 rounded-lg hover:bg-slate-200 transition-all font-bold text-[10px] px-3 uppercase tracking-widest"
+                                    className="bg-slate-100 text-[#0047AB] px-4 py-2 rounded-xl hover:bg-slate-200 transition-all font-black text-[10px] uppercase tracking-widest border border-slate-200"
                                     title="Set Overdue"
                                 >
                                     Mark Overdue
@@ -157,11 +169,18 @@ const PendingFees = () => {
                             )}
                             <button 
                                 onClick={() => handleRemind(row)}
-                                className="bg-[#0047AB] text-white px-4 py-2 rounded-lg font-bold text-[10px] uppercase tracking-widest hover:bg-[#003580] transition-all"
+                                disabled={remindingId === row.studentId}
+                                className="bg-[#0047AB] text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[#003580] transition-all shadow-lg shadow-blue-100 flex items-center gap-2 disabled:opacity-50"
                             >
-                                Remind
+                                {remindingId === row.studentId ? <FiLoader className="animate-spin" /> : <FiBell />}
+                                {remindingId === row.studentId ? 'Sending...' : 'Remind'}
                             </button>
                         </>
+                    )}
+                    {(row.feeStatus?.toLowerCase() === 'paid' || parseFloat(row.pendingFee) <= 0) && (
+                        <div className="flex items-center gap-2 text-emerald-500 font-black text-[10px] uppercase tracking-widest bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100">
+                            <FiCheckCircle /> Cleared
+                        </div>
                     )}
                 </div>
             )
