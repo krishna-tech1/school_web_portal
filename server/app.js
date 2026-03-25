@@ -41,6 +41,8 @@ db.query("ALTER TABLE staff ADD COLUMN IF NOT EXISTS staff_type VARCHAR(20) DEFA
     .then(() => db.query("ALTER TABLE students ADD COLUMN IF NOT EXISTS photo_url TEXT"))
     .then(() => db.query("ALTER TABLE students ADD COLUMN IF NOT EXISTS \"feeStatus\" VARCHAR(20) DEFAULT 'Pending'"))
     .then(() => db.query("ALTER TABLE students ADD COLUMN IF NOT EXISTS \"pendingFee\" NUMERIC(15, 2) DEFAULT 0"))
+    .then(() => db.query("ALTER TABLE students ADD COLUMN IF NOT EXISTS \"totalAmount\" NUMERIC(15, 2) DEFAULT 42000"))
+    .then(() => db.query("UPDATE students SET \"totalAmount\" = 42000 WHERE \"totalAmount\" IS NULL"))
     .then(() => db.query(`
         CREATE TABLE IF NOT EXISTS class_fees (
             id SERIAL PRIMARY KEY,
@@ -104,6 +106,32 @@ db.query("ALTER TABLE staff ADD COLUMN IF NOT EXISTS staff_type VARCHAR(20) DEFA
             "submitted_by" VARCHAR(50),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE("staffId", date)
+        )
+    `))
+    .then(() => db.query(`
+        CREATE TABLE IF NOT EXISTS fee_payments (
+            id SERIAL PRIMARY KEY,
+            student_id VARCHAR(50) NOT NULL,
+            amount NUMERIC(15, 2) NOT NULL,
+            payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            payment_method VARCHAR(50),
+            remark TEXT,
+            selected_fees TEXT, -- JSON string or comma-separated list of fee names
+            recorded_by VARCHAR(50) -- admin name or ID
+        )
+    `))
+    .then(() => db.query(`
+        CREATE TABLE IF NOT EXISTS inventory (
+            id SERIAL PRIMARY KEY,
+            item_id VARCHAR(50) UNIQUE NOT NULL,
+            name VARCHAR(100) NOT NULL,
+            category VARCHAR(50),
+            quantity INT DEFAULT 0,
+            min_quantity INT DEFAULT 0,
+            unit VARCHAR(20),
+            location VARCHAR(50),
+            status VARCHAR(20),
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     `))
     .then(() => console.log('✅ Database schema verified'))
@@ -289,19 +317,23 @@ router.post('/students', async (req, res) => {
             return res.status(400).json({ message: 'Input fields exceed character limits.' });
         }
 
+        // Fetch current total fees for this class to set as initial pendingFee
+        const feeRes = await db.query('SELECT SUM(amount) as total FROM class_fees WHERE class_name = $1', [className]);
+        const initialFee = parseFloat(feeRes.rows[0].total || 0);
+
         const query = `
             INSERT INTO students (
                 "studentId", "firstName", "lastName", "dateOfBirth", gender, address, 
                 class, section, "rollNumber", "guardianName", relation, 
-                "guardianPhone", email, "feeStatus", "pendingFee", photo_url, "admissionDate"
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, CURRENT_DATE)
+                "guardianPhone", email, "feeStatus", "pendingFee", "totalAmount", photo_url, "admissionDate"
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, CURRENT_DATE)
             RETURNING *
         `;
 
         const values = [
             studentId, firstName, lastName, dob || null, gender, address, 
             className, section, rollNumber, parentName, relation, 
-            phoneNumber, email, 'Pending', 42000, photo_url
+            phoneNumber, email, initialFee > 0 ? 'Pending' : 'Paid', initialFee, initialFee, photo_url
         ];
 
         const result = await db.query(query, values);
@@ -714,8 +746,18 @@ db.query(`
 
 // Fee Structure APIs
 router.get('/fees', async (req, res) => {
+    const { className } = req.query;
     try {
-        const result = await db.query('SELECT * FROM class_fees ORDER BY class_name ASC, fee_name ASC');
+        let query = 'SELECT * FROM class_fees';
+        let params = [];
+        
+        if (className) {
+            query += ' WHERE class_name = $1';
+            params.push(className);
+        }
+        
+        query += ' ORDER BY class_name ASC, fee_name ASC';
+        const result = await db.query(query, params);
         res.json(result.rows);
     } catch (err) {
         console.error('Fetch fees error:', err);
@@ -732,6 +774,12 @@ router.post('/fees/bulk', async (req, res) => {
 
     try {
         for (const update of updates) {
+            // 1. Check if this is a NEW fee for this class (not just an update)
+            const checkQuery = 'SELECT id FROM class_fees WHERE class_name = $1 AND fee_name = $2';
+            const checkRes = await db.query(checkQuery, [update.className, feeName]);
+            const isNewFee = checkRes.rows.length === 0;
+
+            // 2. Insert or Update the fee structure
             const query = `
                 INSERT INTO class_fees (class_name, fee_name, amount, due_date, updated_at)
                 VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
@@ -742,8 +790,24 @@ router.post('/fees/bulk', async (req, res) => {
                     updated_at = CURRENT_TIMESTAMP
             `;
             await db.query(query, [update.className, feeName, update.amount, dueDate || null]);
+
+            // 3. If it's a NEW fee, automatically add it to every student in that class
+            if (isNewFee && parseFloat(update.amount) > 0) {
+                const addAmount = parseFloat(update.amount);
+                const updateStudentsQuery = `
+                    UPDATE students 
+                    SET 
+                        "pendingFee" = "pendingFee" + $1,
+                        "totalAmount" = "totalAmount" + $1,
+                        "feeStatus" = 'Pending',
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE class = $2
+                `;
+                await db.query(updateStudentsQuery, [addAmount, update.className]);
+                console.log(`[AUTO-FEE] Added ${addAmount} to students in ${update.className} for new fee: ${feeName}`);
+            }
         }
-        res.json({ message: 'Bulk fees updated successfully' });
+        res.json({ message: 'Bulk fees updated successfully. New fees were automatically added to student balances.' });
     } catch (err) {
         console.error('Bulk fee error:', err);
         res.status(500).json({ message: 'Error updating bulk fees' });
@@ -752,37 +816,90 @@ router.post('/fees/bulk', async (req, res) => {
 
 router.post('/fees/sync-students', async (req, res) => {
     try {
+        // Smarter sync logic: Incremental fee update
+        // New PendingFee = Current PendingFee + (New TotalFees - Previous TotalAmount)
         const query = `
-            UPDATE students
-            SET 
-                "pendingFee" = subquery.total_fees,
-                "feeStatus" = CASE 
-                    WHEN subquery.total_fees > 0 THEN 'Pending'
-                    ELSE 'Paid'
-                END
-            FROM (
-                SELECT class_name, SUM(amount) as total_fees
+            WITH fee_totals AS (
+                SELECT class_name, SUM(amount) as new_total
                 FROM class_fees
                 GROUP BY class_name
-            ) AS subquery
-            WHERE students."class" = subquery.class_name
+            )
+            UPDATE students
+            SET 
+                "pendingFee" = GREATEST(0, "pendingFee" + (ft.new_total - COALESCE("totalAmount", 0))),
+                "totalAmount" = ft.new_total,
+                "feeStatus" = CASE 
+                    WHEN ("pendingFee" + (ft.new_total - COALESCE("totalAmount", 0))) > 0 THEN 'Pending'
+                    ELSE 'Paid'
+                END
+            FROM fee_totals ft
+            WHERE students."class" = ft.class_name
         `;
         await db.query(query);
         
-        // Handle students whose classes have NO fees defined in class_fees
+        // Handle students whose classes have NO fees defined
         const resetQuery = `
             UPDATE students
             SET 
                 "pendingFee" = 0,
+                "totalAmount" = 0,
                 "feeStatus" = 'Paid'
             WHERE "class" NOT IN (SELECT class_name FROM class_fees)
         `;
         await db.query(resetQuery);
 
-        res.json({ message: 'All students synced with fee structure' });
+        res.json({ message: 'Sync complete! Only fee differences were added to students, preserving previous payments.' });
     } catch (err) {
         console.error('Sync fees error:', err);
         res.status(500).json({ message: 'Error syncing students' });
+    }
+});
+
+// Record Fee Payment
+router.post('/fees/payment', async (req, res) => {
+    const { studentId, amount, paymentMethod, remark, selectedFees } = req.body;
+    
+    if (!studentId || !amount || parseFloat(amount) <= 0) {
+        return res.status(400).json({ message: 'Invalid payment details.' });
+    }
+
+    try {
+        await db.query('BEGIN');
+
+        // 1. Record the payment in history
+        const feeList = Array.isArray(selectedFees) ? selectedFees.join(', ') : selectedFees;
+        await db.query(`
+            INSERT INTO fee_payments (student_id, amount, payment_method, remark, selected_fees)
+            VALUES ($1, $2, $3, $4, $5)
+        `, [studentId, amount, paymentMethod || 'Cash', remark || '', feeList || 'General Payment']);
+
+        // 2. Reduce the student's pendingFee
+        const updateRes = await db.query(`
+            UPDATE students
+            SET 
+                "pendingFee" = GREATEST(0, "pendingFee" - $1),
+                "feeStatus" = CASE 
+                    WHEN ("pendingFee" - $1) <= 0 THEN 'Paid'
+                    ELSE 'Pending'
+                END
+            WHERE "studentId" = $2
+            RETURNING *
+        `, [parseFloat(amount), studentId]);
+
+        if (updateRes.rows.length === 0) {
+            await db.query('ROLLBACK');
+            return res.status(404).json({ message: 'Student not found.' });
+        }
+
+        await db.query('COMMIT');
+        res.json({ 
+            message: `Recorded payment of ₹ ${amount} for student ${studentId}.`, 
+            student: updateRes.rows[0] 
+        });
+    } catch (err) {
+        await db.query('ROLLBACK');
+        console.error('Record Payment error:', err);
+        res.status(500).json({ message: 'Internal server error while recording payment.' });
     }
 });
 
@@ -968,8 +1085,8 @@ router.get('/reports/summary', async (req, res) => {
     try {
         const financialQuery = `
             SELECT 
-                SUM("totalAmount" - "pendingFee") as collected,
-                SUM("pendingFee") as outstanding
+                SUM(COALESCE("totalAmount", 0) - COALESCE("pendingFee", 0)) as collected,
+                SUM(COALESCE("pendingFee", 0)) as outstanding
             FROM students
         `;
         const attendanceQuery = `
