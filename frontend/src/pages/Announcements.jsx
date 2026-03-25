@@ -23,7 +23,7 @@ const Announcements = () => {
 
     const fetchAnnouncements = async () => {
         try {
-            const response = await axios.get(`${API_URL}/api/portal/announcements`, {
+            const response = await axios.get(`${API_URL}/portal/announcements`, {
                 params: { role: 'admin', userId: currentUserId }
             });
             setAnnouncements(response.data);
@@ -40,7 +40,7 @@ const Announcements = () => {
 
         try {
             setLoading(true);
-            await axios.post(`${API_URL}/api/portal/announcements`, {
+            await axios.post(`${API_URL}/portal/announcements`, {
                 sender_id: currentUserId,
                 sender_name: 'Administrator',
                 sender_role: 'admin',
@@ -64,7 +64,7 @@ const Announcements = () => {
     const handleDelete = async (id) => {
         if (!window.confirm('Delete this announcement permanently?')) return;
         try {
-            await axios.delete(`${API_URL}/api/portal/announcements/${id}`, {
+            await axios.delete(`${API_URL}/portal/announcements/${id}`, {
                 params: { userId: currentUserId }
             });
             fetchAnnouncements();

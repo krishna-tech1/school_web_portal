@@ -5,9 +5,9 @@ import { FiRefreshCw, FiShield, FiAlertTriangle, FiCheckCircle } from 'react-ico
 const SystemConfig = () => {
     const [confirmText, setConfirmText] = useState('');
     const [loading, setLoading] = useState(false);
-    
+
     // For local dev, update this to your portal server URL
-    const API_URL = 'http://localhost:5056'; 
+    const API_URL = 'https://teacher-student-server-itw6.onrender.com/api';
 
     const handleReset = async () => {
         if (confirmText !== 'we started new acdamic year or new term') {
@@ -22,15 +22,15 @@ const SystemConfig = () => {
         try {
             setLoading(true);
             const today = new Date().toISOString().split('T')[0];
-            
+
             // 1. Update Academic Start Date
-            await axios.post(`${API_URL}/api/portal/settings`, {
+            await axios.post(`${API_URL}/portal/settings`, {
                 key: 'academic_start_date',
                 value: today
             });
 
             // 2. Set Global Message
-            await axios.post(`${API_URL}/api/portal/settings`, {
+            await axios.post(`${API_URL}/portal/settings`, {
                 key: 'academic_reset_message',
                 value: confirmText
             });
@@ -63,10 +63,10 @@ const SystemConfig = () => {
                     <div>
                         <h2 className="text-xl font-black text-[#1C2B4E] mb-2">Reset Academic Cycle</h2>
                         <p className="text-slate-500 font-medium leading-relaxed mb-6">
-                            This action will set the current date as the **Official Start Date** for the entire institution. 
+                            This action will set the current date as the **Official Start Date** for the entire institution.
                             Teachers will be unable to mark or view attendance before this date, ensuring clean data for the new term.
                         </p>
-                        
+
                         <div className="space-y-4">
                             <div className="p-4 bg-white/50 border border-rose-200 rounded-2xl">
                                 <p className="text-[11px] font-black text-rose-400 uppercase tracking-widest mb-2">Required Confirmation Text:</p>
@@ -74,11 +74,11 @@ const SystemConfig = () => {
                                     "we started new acdamic year or new term"
                                 </p>
                             </div>
-                            
+
                             <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1">
                                 Type confirmation here:
                             </label>
-                            <input 
+                            <input
                                 type="text"
                                 placeholder="Type the text exactly above..."
                                 value={confirmText}
@@ -93,11 +93,10 @@ const SystemConfig = () => {
                     <button
                         onClick={handleReset}
                         disabled={loading || confirmText !== 'we started new acdamic year or new term'}
-                        className={`px-12 py-5 rounded-3xl font-black text-sm flex items-center gap-3 transition-all active:scale-95 shadow-xl ${
-                            confirmText === 'we started new acdamic year or new term'
-                            ? 'bg-rose-500 text-white hover:bg-black shadow-rose-200'
-                            : 'bg-slate-100 text-slate-300 cursor-not-allowed shadow-none'
-                        }`}
+                        className={`px-12 py-5 rounded-3xl font-black text-sm flex items-center gap-3 transition-all active:scale-95 shadow-xl ${confirmText === 'we started new acdamic year or new term'
+                                ? 'bg-rose-500 text-white hover:bg-black shadow-rose-200'
+                                : 'bg-slate-100 text-slate-300 cursor-not-allowed shadow-none'
+                            }`}
                     >
                         {loading ? <FiRefreshCw className="animate-spin" /> : <FiRefreshCw />}
                         Perform Academic Reset

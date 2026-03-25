@@ -174,9 +174,9 @@ const FeeStructure = () => {
                     {!hasChanges && (
                         <button
                             onClick={() => {
-                                if (window.confirm('Are you sure you want to reset ALL students\' pending fees to the current structure amounts? All existing payment records for the current term will be overwritten with the full amounts.')) {
-                                    feeAPI.syncStudents().then(() => {
-                                        alert('Successfully updated all students with the latest fee structure.');
+                                if (window.confirm('Sync with Fee Structure? This will calculate the difference between your current fees and the previous totals. All students will have only the NEW fee amounts added to their balance, preserving their previous payments.')) {
+                                    feeAPI.syncStudents().then((res) => {
+                                        alert(res.data.message || 'Successfully updated all students with the latest fee structure while preserving payments.');
                                     });
                                 }
                             }}
