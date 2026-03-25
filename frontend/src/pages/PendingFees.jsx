@@ -3,6 +3,7 @@ import { FiSearch, FiChevronDown, FiBell, FiCheckCircle, FiLoader } from 'react-
 import { Card, Table } from '../components/ui';
 import { studentAPI, feeAPI, notificationAPI } from '../services/api';
 import { toast } from 'react-toastify';
+import PaymentModal from '../components/modals/PaymentModal';
 
 const PendingFees = () => {
     const [search, setSearch] = useState('');
@@ -12,6 +13,10 @@ const PendingFees = () => {
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [remindingId, setRemindingId] = useState(null);
+    
+    // Payment Modal State
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    const [studentForPayment, setStudentForPayment] = useState(null);
 
     const [isClassOpen, setIsClassOpen] = useState(false);
     const [isSectionOpen, setIsSectionOpen] = useState(false);
@@ -49,19 +54,9 @@ const PendingFees = () => {
         return () => window.removeEventListener('click', handleClickOutside);
     }, []);
 
-    const handleMarkPaid = async (student) => {
-        try {
-            await studentAPI.update(student.studentId, {
-                ...student,
-                feeStatus: 'Paid',
-                pendingFee: 0
-            });
-            toast.success(`${student.firstName}'s fees marked as Paid`);
-            fetchStudents();
-        } catch (err) {
-            console.error(err);
-            toast.error('Failed to update fee status');
-        }
+    const handleMarkPaid = (student) => {
+        setStudentForPayment(student);
+        setIsPaymentModalOpen(true);
     };
 
     const handleMarkOverdue = async (student) => {
@@ -266,6 +261,22 @@ const PendingFees = () => {
                     )}
                 </div>
             </Card>
+
+            {/* Payment Modal Overlay */}
+            {isPaymentModalOpen && studentForPayment && (
+                <PaymentModal
+                    isOpen={isPaymentModalOpen}
+                    onClose={() => {
+                        setIsPaymentModalOpen(false);
+                        setStudentForPayment(null);
+                    }}
+                    student={studentForPayment}
+                    onPaymentSuccess={() => {
+                        fetchStudents();
+                        toast.success('Payment recorded and balance updated.');
+                    }}
+                />
+            )}
         </div>
     );
 };
