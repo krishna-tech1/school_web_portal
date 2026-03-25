@@ -151,8 +151,29 @@ db.query("ALTER TABLE staff ADD COLUMN IF NOT EXISTS staff_type VARCHAR(20) DEFA
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     `))
-    .then(() => console.log('✅ Database schema verified'))
+    .then(() => {
+        console.log('✅ Database schema verified');
+        // Initial cleanup on startup
+        resetWeeklyLeaves();
+        // Set interval to check every 24 hours
+        setInterval(resetWeeklyLeaves, 24 * 60 * 60 * 1000);
+    })
     .catch(err => console.error('❌ Schema migration failed:', err));
+
+async function resetWeeklyLeaves() {
+    try {
+        // Automatically delete leave records older than 7 days
+        const result = await db.query("DELETE FROM staff_leaves WHERE \"appliedOn\" < NOW() - INTERVAL '7 days'");
+        if (result.rowCount > 0) {
+            console.log(`[MAINTENANCE] Automatically cleared ${result.rowCount} old leave tracking records.`);
+        }
+    } catch (err) {
+        // If the table doesn't exist yet, it will fail silently
+        if (!err.message.includes('relation "staff_leaves" does not exist')) {
+            console.error('Weekly leave reset task failed:', err);
+        }
+    }
+}
 
 // API Routes
 const router = express.Router();
@@ -1252,16 +1273,18 @@ router.get('/reports/collection-log', async (req, res) => {
     try {
         const query = `
             SELECT 
-                "studentId",
-                "firstName" || ' ' || s."lastName" as name,
-                class,
-                section,
-                "totalAmount" as amount,
-                updated_at as "date"
-            FROM students s
-            WHERE "feeStatus" = 'Paid'
-            ORDER BY updated_at DESC
-            LIMIT 50
+                fp.student_id,
+                s."firstName" || ' ' || s."lastName" as name,
+                s.class,
+                s.section,
+                fp.amount,
+                fp.payment_date as "date",
+                fp.payment_method,
+                fp.selected_fees
+            FROM fee_payments fp
+            LEFT JOIN students s ON fp.student_id = s."studentId"
+            ORDER BY fp.payment_date DESC
+            LIMIT 100
         `;
         const result = await db.query(query);
         res.json(result.rows);
