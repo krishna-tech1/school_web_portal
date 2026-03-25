@@ -13,7 +13,7 @@ const Announcements = () => {
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
 
-    const API_URL = 'http://localhost:5056'; // Portal Backend
+    const API_URL = 'https://teacher-student-server-itw6.onrender.com/api'; // Portal Backend
 
     useEffect(() => {
         fetchAnnouncements();
@@ -92,7 +92,7 @@ const Announcements = () => {
                         <FiInfo className="text-[#0047AB]" />
                         Compose
                     </h2>
-                    
+
                     <form onSubmit={handleSend} className="space-y-6">
                         {/* 1st Select Type */}
                         <div className="space-y-1.5">
@@ -107,9 +107,8 @@ const Announcements = () => {
                                         key={t.id}
                                         type="button"
                                         onClick={() => setType(t.id)}
-                                        className={`flex flex-col items-center gap-2 py-3 rounded-2xl border-2 transition-all ${
-                                            type === t.id ? 'border-[#0047AB] bg-blue-50/50' : 'border-slate-50 grayscale opacity-40 hover:grayscale-0 hover:opacity-100'
-                                        }`}
+                                        className={`flex flex-col items-center gap-2 py-3 rounded-2xl border-2 transition-all ${type === t.id ? 'border-[#0047AB] bg-blue-50/50' : 'border-slate-50 grayscale opacity-40 hover:grayscale-0 hover:opacity-100'
+                                            }`}
                                     >
                                         <t.icon className={t.color} size={20} />
                                         <span className="text-[10px] uppercase font-black tracking-widest">{t.id}</span>
@@ -121,7 +120,7 @@ const Announcements = () => {
                         {/* 2nd Subject */}
                         <div className="space-y-1.5">
                             <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">2. Subject Headline ({title.length}/25):</label>
-                            <input 
+                            <input
                                 type="text"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
@@ -134,7 +133,7 @@ const Announcements = () => {
                         {/* 3rd Description */}
                         <div className="space-y-1.5">
                             <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">3. Message Body ({message.length}/75):</label>
-                            <textarea 
+                            <textarea
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
                                 maxLength={75}
@@ -153,9 +152,8 @@ const Announcements = () => {
                                         key={t}
                                         type="button"
                                         onClick={() => setTarget(t)}
-                                        className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                                            target === t ? 'bg-white shadow-sm text-[#0047AB]' : 'text-slate-300'
-                                        }`}
+                                        className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${target === t ? 'bg-white shadow-sm text-[#0047AB]' : 'text-slate-300'
+                                            }`}
                                     >
                                         {t.replace('all', 'Everyone')}
                                     </button>
@@ -166,9 +164,8 @@ const Announcements = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className={`w-full py-5 rounded-[24px] font-black text-sm flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl ${
-                                loading ? 'bg-slate-100 text-slate-300' : 'bg-[#0047AB] text-white hover:bg-black shadow-blue-200'
-                            }`}
+                            className={`w-full py-5 rounded-[24px] font-black text-sm flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl ${loading ? 'bg-slate-100 text-slate-300' : 'bg-[#0047AB] text-white hover:bg-black shadow-blue-200'
+                                }`}
                         >
                             {loading ? <FiClock className="animate-spin" /> : <FiSend />}
                             Post Announcement
@@ -192,11 +189,10 @@ const Announcements = () => {
                         <div key={ann.id} className="bg-white border border-slate-100 rounded-[32px] p-8 shadow-sm group hover:shadow-xl transition-all duration-500">
                             <div className="flex justify-between items-start mb-6">
                                 <div className="flex gap-4 items-center">
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white ${
-                                        ann.type === 'warning' ? 'bg-rose-500 shadow-rose-200 shadow-lg' : 
-                                        ann.type === 'other' ? 'bg-emerald-500 shadow-emerald-200 shadow-lg' : 
-                                        'bg-[#0047AB] shadow-blue-200 shadow-lg'
-                                    }`}>
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white ${ann.type === 'warning' ? 'bg-rose-500 shadow-rose-200 shadow-lg' :
+                                            ann.type === 'other' ? 'bg-emerald-500 shadow-emerald-200 shadow-lg' :
+                                                'bg-[#0047AB] shadow-blue-200 shadow-lg'
+                                        }`}>
                                         {ann.type === 'info' ? <FiInfo /> : ann.type === 'warning' ? <FiAlertTriangle /> : <FiFlag />}
                                     </div>
                                     <div>
@@ -205,7 +201,7 @@ const Announcements = () => {
                                     </div>
                                 </div>
                                 {(ann.sender_id === currentUserId || ann.sender_role === 'admin') && (
-                                    <button 
+                                    <button
                                         onClick={() => handleDelete(ann.id)}
                                         className="p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-500 rounded-xl transition-all"
                                     >
