@@ -6,6 +6,8 @@ import { Button, Card, Table, Modal, Badge } from '../../components/ui';
 import StudentForm from './StudentForm';
 import { fetchStudents, deleteStudent, setSelectedStudent } from './studentSlice';
 import TimetableEditor from '../../components/TimetableEditor';
+import PaymentModal from '../../components/modals/PaymentModal';
+import { FiDollarSign } from 'react-icons/fi';
 
 const StudentList = () => {
     const dispatch = useDispatch();
@@ -23,6 +25,10 @@ const StudentList = () => {
     const [isSectionOpen, setIsSectionOpen] = useState(false);
     const [showTimetableEditor, setShowTimetableEditor] = useState(false);
     const [isTableMaximized, setIsTableMaximized] = useState(false);
+    
+    // Fee payment states
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    const [studentForPayment, setStudentForPayment] = useState(null);
 
     const classes = ['All Classes', 'LKG', 'UKG', ...Array.from({ length: 12 }, (_, i) => `${i + 1}${getSuffix(i + 1)} Std`)];
     const sections = ['All Sections', 'A', 'B', 'C', 'D', 'E'];
@@ -105,6 +111,17 @@ const StudentList = () => {
                         title="Delete Student"
                     >
                         <FiTrash2 size={18} />
+                    </button>
+                    <button
+                        onClick={() => {
+                            setStudentForPayment(row);
+                            setIsPaymentModalOpen(true);
+                        }}
+                        className="px-3 py-2 bg-[#10B981] hover:bg-[#059669] text-white rounded-lg transition-all active:scale-95 font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 shadow-sm shadow-emerald-50"
+                        title="Record Payment"
+                    >
+                        <FiDollarSign size={14} />
+                        Paid
                     </button>
                 </div>
             ),
@@ -254,6 +271,21 @@ const StudentList = () => {
                         />
                     </div>
                 </div>
+            )}
+
+            {/* Payment Modal Overlay */}
+            {isPaymentModalOpen && studentForPayment && (
+                <PaymentModal
+                    isOpen={isPaymentModalOpen}
+                    onClose={() => {
+                        setIsPaymentModalOpen(false);
+                        setStudentForPayment(null);
+                    }}
+                    student={studentForPayment}
+                    onPaymentSuccess={() => {
+                        dispatch(fetchStudents());
+                    }}
+                />
             )}
         </div>
     );
