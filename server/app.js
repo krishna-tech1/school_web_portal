@@ -30,7 +30,24 @@ const db = require('./config/db');
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+const allowedOrigins = [
+    'https://school-web-portal-three.vercel.app',
+    'https://school-web-portal.onrender.com',
+    'http://localhost:5173',
+    'http://localhost:3000'
+];
+
+app.use(cors({
+    origin: function (origin, callback) {
+        // allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) === -1) {
+            return callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'), false);
+        }
+        return callback(null, true);
+    },
+    credentials: true
+}));
 app.use(express.json());
 
 // Startup migration to ensure staff_type exists
@@ -799,9 +816,8 @@ router.post('/fees/bulk', async (req, res) => {
                     SET 
                         "pendingFee" = "pendingFee" + $1,
                         "totalAmount" = "totalAmount" + $1,
-                        "feeStatus" = 'Pending',
-                        updated_at = CURRENT_TIMESTAMP
-                    WHERE class = $2
+                        "feeStatus" = 'Pending'
+                    WHERE "class" = $2
                 `;
                 await db.query(updateStudentsQuery, [addAmount, update.className]);
                 console.log(`[AUTO-FEE] Added ${addAmount} to students in ${update.className} for new fee: ${feeName}`);
